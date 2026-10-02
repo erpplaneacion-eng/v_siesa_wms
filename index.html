@@ -638,106 +638,20 @@ footer .firma{color:var(--verde)}
 
   <div class="tabla map">
     <table>
-      <thead><tr><th>Paso en Vantage</th><th>Lo que llega al WMS</th><th>Lo que vuelve a SIESA</th><th>Encaje</th></tr></thead>
+      <thead><tr><th>Paso en Vantage</th><th>Lo que llega al WMS</th><th>Lo que vuelve a SIESA</th></tr></thead>
       <tbody>
-        <tr><td>7 · OCO por proveedor</td><td>La OC para recibir en el muelle</td><td>Entrada con las unidades realmente recibidas, también en parciales</td><td><span class="tag escribe">Encaja</span></td></tr>
-        <tr><td>5 · RQC por sede y ruta</td><td>Una requisición por proyecto (sede) para preparar</td><td>Consumo solo de lo que se preparó</td><td><span class="tag" style="background:var(--alerta-bg);color:var(--alerta)">Revisar zonas</span></td></tr>
-        <tr><td>5 · RQC consolidada del período</td><td>Un documento sin proyecto</td><td>—</td><td><span class="tag" style="background:var(--grave-bg);color:var(--grave)">Choca</span></td></tr>
-        <tr><td>9 · Reposiciones y aseo</td><td>Las mismas RQC por punto</td><td>Consumo</td><td><span class="tag escribe">Encaja</span></td></tr>
-        <tr><td>8 · Remisiones, actas y portadas</td><td>Nada: la lista de entrega y la planilla se imprimen fuera del WMS</td><td>—</td><td><span class="tag escribe">Vantage las sigue produciendo</span></td></tr>
-        <tr><td>8 · Conteo físico de logística</td><td>Nada: el WMS tiene sus propias auditorías</td><td>Ajustes de inventario</td><td><span class="tag" style="background:var(--alerta-bg);color:var(--alerta)">Se duplica</span></td></tr>
-        <tr><td>3 · Descuento de existencias</td><td>—</td><td>Los ajustes del WMS cambian lo que Vantage lee</td><td><span class="tag lee">Mejora el dato</span></td></tr>
-        <tr><td>10 · Raciones a facturar</td><td>—</td><td>El consumo confirmado puede ser menor que lo enviado</td><td><span class="tag" style="background:var(--grave-bg);color:var(--grave)">Revisar</span></td></tr>
+        <tr><td>7 · OCO por proveedor</td><td>La OC para recibir en el muelle</td><td>Entrada con las unidades realmente recibidas, también en parciales</td></tr>
+        <tr><td>5 · RQC por sede y ruta</td><td>Una requisición por proyecto (sede) para preparar</td><td>Consumo solo de lo que se preparó</td></tr>
+        <tr><td>5 · RQC consolidada del período</td><td>Un documento sin proyecto</td><td>—</td></tr>
+        <tr><td>9 · Reposiciones y aseo</td><td>Las mismas RQC por punto</td><td>Consumo</td></tr>
+        <tr><td>8 · Remisiones, actas y portadas</td><td>Nada: la lista de entrega y la planilla se imprimen fuera del WMS</td><td>—</td></tr>
+        <tr><td>8 · Conteo físico de logística</td><td>Nada: el WMS tiene sus propias auditorías</td><td>Ajustes de inventario</td></tr>
+        <tr><td>3 · Descuento de existencias</td><td>—</td><td>Los ajustes del WMS cambian lo que Vantage lee</td></tr>
+        <tr><td>10 · Raciones a facturar</td><td>—</td><td>El consumo confirmado puede ser menor que lo enviado</td></tr>
       </tbody>
     </table>
   </div>
 
-  <h3 style="margin-top:44px">Puntos a resolver</h3>
-  <p class="lede">Ordenados por impacto. Cada uno sale de comparar el acta con cómo trabaja Vantage hoy.</p>
-  <div class="riesgos">
-    <div class="r">
-      <span class="sev alta">Alta</span>
-      <div>
-        <h3>Una RQC de víveres mezcla cuatro zonas del CEDI</h3>
-        <p>El acta pide que la requisición sea por ubicación o zona. Vantage parte solo en víveres y congelados, así que una RQC de víveres lleva a la vez productos de mercado, fruver, panadería y, en comedores, aseo. La zona de refrigerado y congelado sí coincide con la ruta de congelados.</p>
-        <p class="acc"><b>Acción:</b> confirmar con MUVUM si el WMS separa por zona dentro de una misma requisición (las zonas se eligen al planear el picking) o si Vantage debe partir la RQC por zona usando el tipo de inventario de cada ítem, que ya conoce.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev alta">Alta</span>
-      <div>
-        <h3>La RQC consolidada no tiene proyecto</h3>
-        <p>Vantage puede enviar todo un período en una sola RQC por ruta, sin proyecto. El acta exige que al WMS llegue un documento por proyecto o destino, porque así arma el picking, el rótulo y el embarque por cliente.</p>
-        <p class="acc"><b>Acción:</b> no usar la RQC consolidada para lo que sale del CEDI de Yumbo, o validar con MUVUM cómo la trataría el WMS antes de seguir usándola.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev alta">Alta</span>
-      <div>
-        <h3>Se factura lo enviado, no lo preparado</h3>
-        <p>Raciones a facturar cuenta las RQC enviadas a SIESA. Con el WMS, lo que realmente salió es lo que confirma el <i>Dispatch Document Ended</i>: solo las unidades preparadas, y un picking puede cerrarse parcial por falta de inventario.</p>
-        <p class="acc"><b>Acción:</b> traer a Vantage el consumo confirmado de cada requisición y comparar contra lo pedido; al menos como alerta de despachos incompletos antes de facturar.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev media">Media</span>
-      <div>
-        <h3>El acta habla de RQI y Vantage crea RQC</h3>
-        <p>El acta usa RQI (requisición interna de consumo, SAI) y fija la nomenclatura "RQI = RQI". Vantage crea documentos RQC, clase 74. Si el WMS solo importa RQI, las requisiciones de Vantage no le llegarían.</p>
-        <p class="acc"><b>Acción:</b> confirmar con SIESA y MUVUM qué tipo de documento lee la interfaz <i>Requisición por proyecto</i> y si la RQC está configurada para confirmarse como consumo.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev media">Media</span>
-      <div>
-        <h3>Anular y reenviar una RQC ya importada</h3>
-        <p>En el WMS los documentos no se editan: se cancelan si están pendientes o se cierran si ya empezó el picking, y el mismo documento no se puede importar dos veces. Vantage reenvía una RQC solo después de anularla en SIESA, pero esa anulación no cancela sola la tarea en el WMS.</p>
-        <p class="acc"><b>Acción:</b> acordar el procedimiento: quien anula en SIESA cancela o cierra también en el WMS antes de que Vantage reenvíe.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev media">Media</span>
-      <div>
-        <h3>Dos conteos de inventario para la misma bodega</h3>
-        <p>Logística registra un conteo físico en Vantage, que hoy es el dato confiable para las compras. El WMS hace auditorías manuales y por tres conteos que sí ajustan SIESA.</p>
-        <p class="acc"><b>Acción:</b> decidir cuál manda en el CEDI. Si es el WMS, el conteo de Vantage queda para las bodegas que no están en el WMS.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev media">Media</span>
-      <div>
-        <h3>Frutas y verduras por peso contra un WMS en unidades</h3>
-        <p>El inventario del WMS se gestiona en unidades con EAN 13. Vantage pide el fruver en kilos con dos decimales y otros ítems en libras o gramos, según la unidad de inventario de SIESA.</p>
-        <p class="acc"><b>Acción:</b> validar con MUVUM cómo se confirma en la terminal un ítem por peso y si los decimales de la RQC pasan intactos.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev media">Media</span>
-      <div>
-        <h3>La existencia por bodega que lee Vantage no es real</h3>
-        <p>El servicio de existencias de SIESA ignora la bodega pedida y devuelve siempre la 001. Los ajustes del WMS mejoran el inventario de Yumbo, pero los períodos de Buga (0009) siguen descontando un stock que no es suyo.</p>
-        <p class="acc"><b>Acción:</b> sigue pendiente con el desarrollador de SIESA; no depende del WMS.</p>
-      </div>
-    </div>
-    <div class="r">
-      <span class="sev baja">Baja</span>
-      <div>
-        <h3>Cambios de componentes de kits</h3>
-        <p>Si se reemplaza un componente de un kit en el WMS, el acta pide repetir el cambio a mano en SIESA. Vantage no usa kits hoy.</p>
-        <p class="acc"><b>Acción:</b> tenerlo presente si algún día se arman canastas como kits.</p>
-      </div>
-    </div>
-  </div>
-
-  <h3 style="margin-top:44px">Preguntas para llevar a la próxima reunión</h3>
-  <ul class="preg">
-    <li><span class="a">MUVUM</span><span>¿El WMS separa por zona una requisición que trae ítems de mercado, fruver, panadería y aseo, o necesita una requisición por zona?</span></li>
-    <li><span class="a">MUVUM</span><span>¿Qué hace el WMS con una requisición sin proyecto, como la RQC consolidada de Vantage?</span></li>
-    <li><span class="a s">SIESA</span><span>¿La interfaz <i>Requisición por proyecto</i> lee documentos RQC (clase 74) o solo RQI? ¿La RQC está configurada para confirmarse como consumo?</span></li>
-    <li><span class="a s">SIESA</span><span>¿Dónde queda registrado el consumo confirmado por el WMS, para que Vantage lo sincronice y compare con lo enviado?</span></li>
-    <li><span class="a">MUVUM</span><span>¿Cómo se confirma en la terminal un ítem que se vende por peso, y cuántos decimales acepta?</span></li>
-    <li><span class="a">Operación</span><span>¿Qué flujos del acta están hoy en producción? El acta es de agosto de 2025 y esta página no verifica su estado actual.</span></li>
-  </ul>
 </section>
 
 <footer>

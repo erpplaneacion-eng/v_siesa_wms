@@ -626,8 +626,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     administrativo:[12,-90,-.3], programas:[12,-141,.4], aseguramiento:[12,168,-.3],
     financiero:[17,40,-.5], juridico:[17,-50,-.5], comunicacion:[17,-125,.5], talento:[17,150,.5]};
   Object.entries(ORBITA).forEach(([id, [R, deg, y]]) => { const t = deg * Math.PI / 180; AREAS[id].pos = [R * Math.cos(t), y, R * Math.sin(t)]; });
-  const WMS_PROCS = [['Recibo','parcial'],['Almacenamiento','parcial'],['Picking','parcial'],['Empaque','parcial'],['Embarque','parcial'],['Auditorías','parcial'],
-    ['Requisición por zona','futuro'],['Despachado a Vantage','futuro'],['Un solo conteo','futuro'],['Anular sin duplicar','futuro']];
+  const WMS_PROCS = [['Recibo','parcial'],['Almacenamiento','parcial'],['Picking','parcial'],['Empaque','parcial'],['Embarque','parcial'],['Auditorías','parcial'],['Kits','parcial']];
   const VANTAGE_PROCS = ['Planeación','Compras','Nutrición','Costos','Supervisión','Facturación','Logística','Calidad'].map(n => [n, 'hoy']);
   const NAMES = Object.assign({vantage:'Vantage', siesa:'SIESA', wms:'MUV WMS'}, Object.fromEntries(Object.entries(AREAS).map(([k, A]) => [k, A.name])));
 
@@ -673,15 +672,14 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     ['siesa', [3.2,.5,8.6], .7, () => coin(imgPaint(SIESA_PNG, 430), BLUE), 'SIESA', 'azul',
       {k:'Plataforma externa · la Luna de Vantage', t:'SIESA', d:'Inventario, compras y contabilidad. Vantage le envía documentos, el área Financiera trabaja en ella directamente y el WMS le devuelve lo que pasa en la bodega.', c:['Vantage','Financiero','WMS']}],
     ['wms', [14.6,.9,-7.2], .85, () => atom(wmsPaint, 'parcial', WMS_PROCS), 'MUV WMS', 'wmsl',
-      {k:'En camino · Toca para entrar', t:'MUV WMS · el CEDI', d:'La plataforma de la bodega, satélite de Logística. Hoy habla solo con SIESA; para que la corporación quede conectada de punta a punta, falta que lo que pasa en la bodega vuelva a Vantage y que los dos sistemas hablen el mismo idioma.',
+      {k:'En camino · Toca para entrar', t:'MUV WMS · el CEDI', d:'La plataforma de la bodega, satélite de Logística. Habla con SIESA: recibe las órdenes y requisiciones y le devuelve lo que pasa en el CEDI.',
        c:['Logística','SIESA','Acta MUVUM 28-ago-2025'],
-       p:[['Flujos del acta · en camino','Recibo, almacenamiento, picking, empaque, embarque, auditorías y kits, aprobados con MUVUM.'],
-          ['Falta · Requisición por zona','Vantage parte la RQC en víveres y congelados; el acta pide una por zona del CEDI (mercado, fruver, panadería, aseo).'],
-          ['Falta · Lo despachado vuelve a Vantage','Traer el consumo confirmado por el WMS para facturar lo que realmente salió y alertar los pedidos incompletos.'],
-          ['Falta · Un solo conteo de inventario','Decidir si manda el conteo físico de Vantage o las auditorías del WMS en el CEDI.'],
-          ['Falta · Anular sin duplicar','Que anular una RQC en SIESA cancele también la tarea en el WMS antes de reenviar.'],
-          ['Falta · Fruver por peso','Confirmar cómo se recibe y prepara en unidades un ítem que se pide en kilos.'],
-          ['Falta · Tipo de documento','Validar que el WMS lea las RQC de Vantage, o si deben llegar como RQI.']]}],
+       p:[['Recibo','OC y traslados, con recibos parciales y obsequios a ciegas.'],
+          ['Almacenamiento','Movimientos libres y dirigidos entre ubicaciones.'],
+          ['Picking','Por pedido o con consolidación previa, ruta FEFO.'],
+          ['Empaque y embarque','Rótulo y lista de empaque por pedido; carga por transportadora y vehículo.'],
+          ['Auditorías','Novedades, manual y toma física de 3 conteos.'],
+          ['Kits','Ensamble y desensamble.']]}],
     ['mejoramiento', cometAt(0).toArray(), 1, comet, 'Mejoramiento', 'fut',
       {k:'Visión · Mejora continua', t:'Mejoramiento', d:'No es un planeta más: como un cometa, recorre todo el sistema y deja a su paso una estela de mejora en cada área.\nPlanes de mejora, acciones correctivas e indicadores de proceso.', c:['Planes de mejora','Acciones correctivas','Indicadores']}],
     ...Object.entries(AREAS).map(([id, A]) => [id, A.pos, id === 'gerencia' ? 1.5 : 1, () => atom(AREA[A.icon], A.estado, A.procs), A.name, A.estado === 'futuro' ? 'fut' : '',
@@ -739,8 +737,6 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     futuro('talento', 'programas'),
     {id:'v-wms-siesa', a:'wms', b:'siesa', k:'parc', bend:[0,1.8,0], t:'MUV WMS ↔ SIESA', d:'SIESA le pasa las OC y las requisiciones; el WMS le devuelve lo recibido, lo preparado y los ajustes. Son las 8 interfaces del acta con MUVUM.', c:['8 interfaces']},
     {id:'v-wms-log', a:'logistica', b:'wms', k:'parc', bend:[0,1.2,0], t:'Logística ↔ MUV WMS', d:'Logística opera el CEDI con el WMS: recibe, ubica, prepara y embarca con terminales de radiofrecuencia.', c:['Operación diaria']},
-    {id:'f-wms-vantage', a:'wms', b:'vantage', k:'fut', bend:[0,3,0], t:'MUV WMS → Vantage', d:'Lo que falta: que Vantage conozca lo que realmente se despachó y se ajustó en la bodega, para facturar y planear con el dato real y no solo con lo enviado.', c:['Por construir']},
-    {id:'f-wms-adm', a:'wms', b:'administrativo', k:'fut', bend:[0,3.4,0], t:'MUV WMS → Administrativo', d:'Facturación cobraría con el consumo confirmado por la bodega, no solo con las requisiciones enviadas.', c:['Por construir']},
   ];
 
   // ---------- Vasos ----------
@@ -860,7 +856,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     cld: {d:'Al subir un logo, una firma o una foto, se guarda en Cloudinary; al generar un PDF, Vantage la lee de allí.'},
     mcpv: {d:'Cada pregunta o acción de un asistente llega a Vantage como una llamada a una de sus 141 herramientas.', f:[['Seguridad','OAuth 2.0']]},
     'w-oc': {d:'SIESA le pasa al WMS las órdenes de compra (las OCO que crea Vantage) y los traslados entre bodegas. El líder del CEDI los carga al módulo de integraciones y los recibe en el muelle.', f:[['Interfaz','DocumentLines OC / RQI'],['Vuelve','Reception Document Ended, también en parciales']]},
-    'w-rqi': {d:'La RQC que crea Vantage para cada sede y ruta llega al WMS como requisición por proyecto o destino. Con ella se planea el picking.\nEl acta pide una requisición por zona del CEDI: hoy una RQC de víveres de Vantage mezcla mercado, fruver y panadería.', f:[['Interfaz','Requisición por proyecto (Document / Lines)'],['Confirmación','Como consumo']]},
+    'w-rqi': {d:'La RQC que crea Vantage para cada sede y ruta llega al WMS como requisición por proyecto o destino. Con ella se planea el picking.', f:[['Interfaz','Requisición por proyecto (Document / Lines)'],['Confirmación','Como consumo']]},
     'w-conf': {d:'Tres confirmaciones vuelven a SIESA: lo recibido en el muelle, lo efectivamente preparado en cada pedido y los ajustes de inventario de las auditorías.\nLo preparado puede ser menos que lo pedido si el picking se cerró parcial por falta de inventario.', f:[['Recibido','Reception Document Ended'],['Preparado','Dispatch Document Ended'],['Ajustes','Adjustment Document Reconciled'],['Kits','Docto Inventarios (Ensambles)']]},
     agente: {d:'El agente vive dentro de Claude: Claude lee sus reglas, los contratos y las plantillas, y produce los archivos de cada fase para que el área los apruebe.',
       f:[['Entregables','Excel de ciclo, análisis, matriz SIESA, costos y guías'],['Aprobación','Obligatoria entre fases']]},

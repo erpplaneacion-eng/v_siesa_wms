@@ -19,15 +19,17 @@ Y abrir http://localhost:8000. También funciona abriendo `index.html` con doble
 
 ## Publicar en GitHub Pages
 
-1. Crear un repositorio en GitHub (por ejemplo `vantage-siesa-wms`) y subir el contenido de esta carpeta a la rama `main`.
-2. En el repositorio: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama `main`, carpeta `/ (root)` → **Save**.
-3. En uno o dos minutos queda publicado en `https://<usuario>.github.io/vantage-siesa-wms/`.
+Publicado en **https://erpplaneacion-eng.github.io/v_siesa_wms/** desde el repositorio `erpplaneacion-eng/v_siesa_wms`.
+
+1. El repositorio debe ser público (en el plan gratis, Pages solo publica repositorios públicos).
+2. En el repositorio: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama `master`, carpeta `/ (root)` → **Save**.
+3. En uno o dos minutos queda publicado.
 
 El archivo `.nojekyll` evita que GitHub procese el sitio con Jekyll.
 
 ## Actualizar
 
-Editar los `.html` y volver a subir los cambios a `main`. GitHub Pages republica solo.
+Editar los `.html` y volver a subir los cambios a `master`. GitHub Pages republica solo.
 
 ## Fuentes
 

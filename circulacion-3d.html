@@ -116,6 +116,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   #vision{gap:8px;padding:8px 8px 8px 14px}
   #vision .hint2{display:none}
   .fila button{padding:9px 11px;font-size:12px}
+  #filtros{flex-wrap:wrap;justify-content:center;border-radius:20px;overflow:visible}
+  #filtros .vision,#filtros .play{order:-1}
 }
 </style>
 
@@ -275,7 +277,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       [std(rim === DARK ? LIGHT : rim, {emissive:rim}), std(0xffffff, {emissive:rim}), std(0xffffff, {emissive:rim})]);
     body.rotation.x = Math.PI / 2; g.add(body);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1, .06, 12, 64), std(rim, {emissive:rim})); ring.position.z = .15; g.add(ring);
-    const face = new THREE.Mesh(new THREE.CircleGeometry(.96, 64), new THREE.MeshBasicMaterial({map:coinTexture(paint), transparent:true}));
+    const face = new THREE.Mesh(new THREE.CircleGeometry(.96, 64), new THREE.MeshBasicMaterial({map:coinTexture(paint), transparent:true, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-4}));
     face.position.z = .152; g.add(face);
     return {obj:g, mats:[...body.material, ring.material, face.material], picks:[body, face], billboard:true};
   }
@@ -1027,8 +1029,11 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   const visionR = () => { const a = innerWidth / innerHeight; return a >= 1.2 ? 54 : a >= .8 ? 64 : 88; };
   const areaR = () => { const a = innerWidth / innerHeight; return a >= 1.2 ? 24 : a >= .8 ? 30 : 42; };
   const insideR = () => { const a = innerWidth / innerHeight; return a >= 1.2 ? 25 : a >= .8 ? 31 : 44; };
+  let lastW = 0;
   function resize(){
     renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    const anchoCambio = innerWidth !== lastW; lastW = innerWidth;
+    if (!anchoCambio) return;  // en el celular, mostrar u ocultar la barra del navegador solo cambia el alto
     if (tour.on || sel) return;
     if (mode !== 'diving' && !(W === OUT && filter !== 'all')) cam.wantR = homeOf(W)[1];
   }
@@ -1074,6 +1079,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     (card.f || []).forEach(([a, b]) => { const r = document.createElement('div'); const dt = document.createElement('dt'); const dd = document.createElement('dd'); dt.textContent = a; dd.textContent = b; r.append(dt, dd); dl.appendChild(r); });
     dl.hidden = !(card.f && card.f.length);
     $('#card').hidden = false; $('#card').scrollTop = 0;
+    if (innerWidth <= 720) { const bar = $('#bar'); $('#card').style.bottom = ((bar.hidden ? 70 : bar.offsetHeight + 28) + 'px'); }
   }
   function closeCard(){ sel = null; $('#card').hidden = true; }
   $('#cardClose').addEventListener('click', () => { stopTour(); closeCard(); focusFilter(); });
@@ -1227,12 +1233,32 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   }
   const enterable = (Wd, id) => ((Wd === OUT || Wd === VIS) && id === 'vantage') || ((Wd === OUT || Wd === VIS) && id === 'wms') || (Wd === VIS && !!AREAS[id]);
   const titleOf = u => u.type === 'node' ? (enterable(W, u.id) ? 'Entrar a ' + W.N[u.id].card.t : W.N[u.id].card.t) : W.FLOWS.find(f => f.id === u.id).t;
-  const touches = new Map(); let pinch = 0, pinched = false;
+  const touches = new Map(); let pinch = 0, pinched = false, pinchMid = null;
+  const _n = new THREE.Vector3(), _hit = new THREE.Vector3(), _plane = new THREE.Plane(), _ax = new THREE.Vector3(), _ay = new THREE.Vector3();
+  // Acerca o aleja manteniendo quieto el punto del mapa que está bajo (sx, sy)
+  function zoomAt(sx, sy, factor){
+    const newR = Math.min(maxR(), Math.max(4, cam.wantR * factor));
+    ndc.set(sx / innerWidth * 2 - 1, -(sy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
+    camera.getWorldDirection(_n); _plane.setFromNormalAndCoplanarPoint(_n, cam.target);
+    if (ray.ray.intersectPlane(_plane, _hit)) {
+      _hit.sub(cam.target).multiplyScalar(1 - newR / cam.wantR);
+      cam.target.add(_hit); cam.want.add(_hit);
+    }
+    cam.wantR = newR; cam.r = newR;
+  }
+  // Desplaza el mapa siguiendo el movimiento en pantalla
+  function panBy(dx, dy){
+    const k = 2 * cam.r * Math.tan(21 * Math.PI / 180) / innerHeight;
+    _ax.setFromMatrixColumn(camera.matrix, 0).multiplyScalar(-dx * k);
+    _ay.setFromMatrixColumn(camera.matrix, 1).multiplyScalar(dy * k);
+    cam.target.add(_ax).add(_ay); cam.want.copy(cam.target);
+  }
+  const midOf = () => { const [a, b] = [...touches.values()]; return {x:(a.x + b.x) / 2, y:(a.y + b.y) / 2}; };
   const pinchDist = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
   const maxR = () => Math.max(60, homeOf(W)[1] * 1.5);
   canvas.addEventListener('pointerdown', e => {
     touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
-    if (touches.size === 2) { pinch = pinchDist(); pinched = true; down = null; return; }
+    if (touches.size === 2) { pinch = pinchDist(); pinchMid = midOf(); pinched = true; down = null; stopTour(); return; }
     if (touches.size === 1) pinched = false;
     down = {x:e.clientX, y:e.clientY, moved:0}; canvas.setPointerCapture(e.pointerId); canvas.classList.add('drag');
   });
@@ -1241,13 +1267,17 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   canvas.addEventListener('pointermove', e => {
     if (touches.has(e.pointerId)) touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
     if (pinch && touches.size === 2) {
-      const d = pinchDist();
-      if (d > 0 && mode !== 'diving') { cam.wantR = Math.min(maxR(), Math.max(6, cam.wantR * pinch / d)); idleUntil = performance.now() + 7000; }
-      pinch = d; tip.hidden = true; return;
+      const d = pinchDist(), m = midOf();
+      if (d > 0 && mode !== 'diving') {
+        panBy(m.x - pinchMid.x, m.y - pinchMid.y);
+        zoomAt(m.x, m.y, pinch / d);
+        idleUntil = performance.now() + 15000;
+      }
+      pinch = d; pinchMid = m; tip.hidden = true; return;
     }
     if (down) {
       const dx = e.clientX - down.x, dy = e.clientY - down.y; down.moved += Math.abs(dx) + Math.abs(dy); down.x = e.clientX; down.y = e.clientY;
-      if (mode !== 'diving') { cam.theta -= dx * .006; cam.phi = Math.min(2.6, Math.max(.35, cam.phi - dy * .006)); idleUntil = performance.now() + 7000; }
+      if (mode !== 'diving') { const sens = e.pointerType === 'touch' ? .0045 : .006; cam.theta -= dx * sens; cam.phi = Math.min(2.6, Math.max(.35, cam.phi - dy * sens)); idleUntil = performance.now() + 15000; }
       tip.hidden = true; return;
     }
     if (e.pointerType !== 'mouse') return;
@@ -1268,7 +1298,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     down = null;
   });
   canvas.addEventListener('pointerleave', () => { tip.hidden = true; });
-  canvas.addEventListener('wheel', e => { e.preventDefault(); if (mode === 'diving') return; cam.wantR = Math.min(maxR(), Math.max(8, cam.wantR * (1 + e.deltaY * .001))); idleUntil = performance.now() + 7000; }, {passive:false});
+  canvas.addEventListener('wheel', e => { e.preventDefault(); if (mode === 'diving') return; zoomAt(e.clientX, e.clientY, Math.min(1.25, Math.max(.8, 1 + e.deltaY * .001))); idleUntil = performance.now() + 7000; }, {passive:false});
 
   // ---------- Animación ----------
   const tmp = new THREE.Vector3();
@@ -1345,6 +1375,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       n.lbl.style.opacity = ((.12 + .88 * n.v) * lblFade * rv).toFixed(2);
     });
 
+    const nearW = Math.max(.05, cam.r * .05), farW = Math.max(300, cam.r * 5);
+    if (Math.abs(camera.near - nearW) > nearW * .15 || camera.far < farW) { camera.near = nearW; camera.far = farW; camera.updateProjectionMatrix(); }
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }

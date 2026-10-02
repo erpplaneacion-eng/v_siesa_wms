@@ -159,7 +159,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     </div>
   </aside>
 
-  <div id="vision" hidden><b>Transformación digital CHVS</b><span class="modelo">Ordenar <i>→</i> Conectar <i>→</i> Anticipar</span><span class="leg"><i class="d-hoy"></i>Conectado hoy <i class="d-par"></i>En camino <i class="d-fut"></i>Por transformar <i class="d-comp"></i>Compartido</span><span class="hint2">Cada átomo es un área. El cometa es Mejoramiento: tócalo para ver el modelo · La IA recomienda, la persona decide</span><button id="presente">← Volver al presente</button></div>
+  <div id="vision" hidden><b>Transformación digital CHVS</b><span class="modelo">Ordenar <i>→</i> Conectar <i>→</i> Anticipar</span><span class="leg"><i class="d-hoy"></i>Conectado hoy <i class="d-par"></i>En camino <i class="d-fut"></i>Por transformar <i class="d-comp"></i>Compartido</span><span class="hint2">Toca el cometa de Mejoramiento para ver el modelo · La IA recomienda, la persona decide</span><button id="presente">← Volver al presente</button></div>
   <div id="dentro" hidden><b id="dentroT">Dentro de Vantage</b><span id="dentroS">Toca un módulo para verlo</span><button id="salir">← Volver al mapa</button></div>
   <div id="flash"></div>
 
@@ -178,7 +178,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       <button data-f="api">APIs</button>
       <button data-f="db">Bases de datos</button>
       <button data-f="mcp">MCP y agentes</button>
-      <button id="btnVision" class="vision">✦ Transformación digital</button>
+      <button id="btnVision" class="vision">✦ Visión de futuro</button>
       <button id="tour" class="play">▶ Recorrido</button>
     </div>
   </nav>
@@ -1044,7 +1044,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   let lastW = 0;
   function resize(){
     renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-    placeCard();
+    placeCard(); updateViewOffset(true);
     const anchoCambio = innerWidth !== lastW; lastW = innerWidth;
     if (!anchoCambio) return;  // en el celular, mostrar u ocultar la barra del navegador solo cambia el alto
     if (tour.on || sel) return;
@@ -1166,6 +1166,18 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   const fit = (Wd, h, R) => innerWidth / innerHeight < 1 ? [h, Math.max(R, fitR(Wd, h))] : [h, R];
   const homeOfBase = Wd => Wd === OUT ? [HOME, defaultR()] : Wd === IN ? [HOME_IN, insideR()] : Wd === VIS ? [HOME_VIS, visionR()] : Wd === WMSW ? [HOME_WMS, wmsR()] : [HOME_AREA, areaR()];
   const homeOf = Wd => { const [h, R] = homeOfBase(Wd); return fit(Wd, h, R); };
+  // Achica y sube el encuadre de la visión para que ninguna órbita quede debajo de su barra inferior
+  let viewOff = -1;
+  function updateViewOffset(force){
+    const vb = $('#vision');
+    const off = W === VIS && !vb.hidden ? Math.round(innerHeight - vb.getBoundingClientRect().top + 12) : 0;
+    if (off === viewOff && !force) return;
+    viewOff = off;
+    if (off > 0 && off < innerHeight * .6) {
+      const F = innerHeight - off, fw = innerWidth * F / innerHeight;
+      camera.setViewOffset(fw, F, -(innerWidth - fw) / 2, 0, innerWidth, innerHeight);
+    } else camera.clearViewOffset();
+  }
   function syncUI(){
     $('#bar').hidden = W !== OUT;
     $('#vision').hidden = W !== VIS;
@@ -1181,6 +1193,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       const prev = back[back.length - 1];
       $('#salir').textContent = prev && prev.W === VIS ? '← Volver a la visión' : '← Volver al mapa';
     }
+    requestAnimationFrame(() => updateViewOffset());
   }
   // from: punto desde el que la cámara se aleja al volver; sin él, el mundo nace creciendo desde el centro
   function arrive(Wd, from){

@@ -85,6 +85,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
 .fila button.vision{background:linear-gradient(90deg,#009640,#E8C547);color:#fff}
 #vision{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,.95);border:1px solid var(--linea);border-radius:22px;padding:8px 8px 8px 18px;box-shadow:0 6px 24px rgba(0,80,30,.1)}
 #vision b{font:800 16px/1 "League Spartan",sans-serif;color:var(--verde)}
+#vision .modelo{font:700 13px/1 "League Spartan",sans-serif;color:#fff;background:linear-gradient(90deg,#78B82A,#009640);padding:6px 11px;border-radius:999px;white-space:nowrap}
+#vision .modelo i{font-style:normal;opacity:.8}
 #vision .leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gris)}
 #vision .leg i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-left:6px}
 #vision .leg .d-hoy{background:#009640}
@@ -157,7 +159,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     </div>
   </aside>
 
-  <div id="vision" hidden><b>Visión: CHVS conectada</b><span class="leg"><i class="d-hoy"></i>Hoy <i class="d-par"></i>En camino <i class="d-fut"></i>Futuro <i class="d-comp"></i>Compartido</span><span class="hint2">Cada átomo es un área: toca uno para entrar a su mundo</span><button id="presente">← Volver al presente</button></div>
+  <div id="vision" hidden><b>Transformación digital CHVS</b><span class="modelo">Ordenar <i>→</i> Conectar <i>→</i> Anticipar</span><span class="leg"><i class="d-hoy"></i>Conectado hoy <i class="d-par"></i>En camino <i class="d-fut"></i>Por transformar <i class="d-comp"></i>Compartido</span><span class="hint2">Cada átomo es un área. El cometa es Mejoramiento: tócalo para ver el modelo · La IA recomienda, la persona decide</span><button id="presente">← Volver al presente</button></div>
   <div id="dentro" hidden><b id="dentroT">Dentro de Vantage</b><span id="dentroS">Toca un módulo para verlo</span><button id="salir">← Volver al mapa</button></div>
   <div id="flash"></div>
 
@@ -176,7 +178,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       <button data-f="api">APIs</button>
       <button data-f="db">Bases de datos</button>
       <button data-f="mcp">MCP y agentes</button>
-      <button id="btnVision" class="vision">✦ Visión de futuro</button>
+      <button id="btnVision" class="vision">✦ Transformación digital</button>
       <button id="tour" class="play">▶ Recorrido</button>
     </div>
   </nav>
@@ -190,6 +192,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       <li><b>APIs</b>: Resend (correo) y Cloudinary (archivos).</li>
       <li><b>Bases de datos</b>: PostgreSQL y la base de empleados.</li>
       <li><b>MCP</b>: puerta para que Claude, ChatGPT y Grok consulten y operen Vantage.</li>
+      <li><b>Transformación digital CHVS</b>: el modelo Ordenar → Conectar → Anticipar del Área de Mejoramiento, con Vantage, SIESA y el WMS como primeros pasos del nivel Conectar.</li>
       <li><b>Agente de menús</b>: trabaja dentro de Claude y arma el ciclo de menús en 5 fases.</li>
     </ul>
   </div>
@@ -545,13 +548,14 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     },
   });
 
-  const ESTADO = {hoy:'Conectado hoy', parcial:'En camino', futuro:'Visión', obra:'En construcción'};
+  const ESTADO = {hoy:'Conectado hoy', parcial:'En camino', futuro:'Por transformar', obra:'En construcción'};
   const E_COL = {hoy:DARK, parcial:LIGHT, futuro:0xE8C547, obra:YELLOW};
   const SHARED = 0x1fa59a;
   // Áreas del organigrama y sus procesos: [nombre, estado, descripción, compartido con]
   const AREAS = {
     gerencia: {name:'Gerencia y Dirección', icon:'gerencia', estado:'parcial', pos:[0,8.5,0], roles:['Junta Directiva','Director Ejecutivo','Gerente'],
-      d:'Junta Directiva, Director Ejecutivo y Gerente: deciden con la información de todas las áreas.', procs:[
+      d:'Junta Directiva, Director Ejecutivo y Gerente: el sol del sistema. Con los líderes, en el Comité de Mejoramiento, deciden qué transformar primero según la estrategia de CHVS.', procs:[
+      ['Comité de Mejoramiento', 'futuro', 'Gerencia y líderes priorizan y aprueban el portafolio de mejoras; Mejoramiento es la secretaría técnica.'],
       ['Tablero de indicadores', 'hoy', 'El tablero de entrada de Vantage: compras, entregas y alertas.', ['vantage']],
       ['Tablero ejecutivo integral', 'futuro', 'Toda la corporación en tiempo real, para decidir con datos.'],
       ['Informes a la Junta', 'futuro', 'Informes que se arman solos con los datos de cada área.']]},
@@ -670,11 +674,11 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
 
   addNodes(VIS, [
     ['vantage', [0,0,7], .75, () => atom(null, 'hoy', VANTAGE_PROCS, true), 'Vantage', '',
-      {k:'Nuestra Tierra · Toca para entrar', t:'Vantage', d:'La plataforma que ya usan las áreas de operación: el planeta donde vivimos hoy. Al alejarse se ven los demás: el resto de la corporación.', c:['8 módulos','SIESA','IA']}],
+      {k:'Conectar · Toca para entrar', t:'Vantage', d:'El primer gran paso de la transformación: la operación del PAE y los comedores ya trabaja sobre una sola fuente de datos, sin redigitar entre áreas.\nEs la Tierra del sistema: desde aquí se ve todo lo que falta conectar en el resto de la corporación.', c:['Nivel Conectar','8 módulos','Datos con dueño']}],
     ['siesa', [3.2,.5,8.6], .7, () => coin(imgPaint(SIESA_PNG, 430), BLUE), 'SIESA', 'azul',
-      {k:'Plataforma externa · la Luna de Vantage', t:'SIESA', d:'Inventario, compras y contabilidad. Vantage le envía documentos, el área Financiera trabaja en ella directamente y el WMS le devuelve lo que pasa en la bodega.', c:['Vantage','Financiero','WMS']}],
+      {k:'Conectar · Plataforma externa', t:'SIESA', d:'El ERP contable y de inventario. En el modelo es la versión oficial de compras, inventario y contabilidad: Vantage y el WMS se integran con ella por APIs en vez de redigitar.', c:['Vantage','Financiero','WMS']}],
     ['wms', [14.6,.9,-7.2], .85, () => atom(wmsPaint, 'parcial', WMS_PROCS), 'MUV WMS', 'wmsl',
-      {k:'En camino · Toca para entrar', t:'MUV WMS · el CEDI', d:'La plataforma de la bodega, satélite de Logística. Habla con SIESA: recibe las órdenes y requisiciones y le devuelve lo que pasa en el CEDI.',
+      {k:'Conectar · Toca para entrar', t:'MUV WMS · el CEDI', d:'La bodega entra a la transformación: recibo, picking y embarque con escáner, integrados con SIESA. Cada movimiento del CEDI queda registrado en la fuente oficial, sin papel ni Excel suelto.',
        c:['Logística','SIESA','Acta MUVUM 28-ago-2025'],
        p:[['Recibo','OC y traslados, con recibos parciales y obsequios a ciegas.'],
           ['Almacenamiento','Movimientos libres y dirigidos entre ubicaciones.'],
@@ -683,7 +687,15 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
           ['Auditorías','Novedades, manual y toma física de 3 conteos.'],
           ['Kits','Ensamble y desensamble.']]}],
     ['mejoramiento', cometAt(0).toArray(), 1, comet, 'Mejoramiento', 'fut',
-      {k:'Visión · Mejora continua', t:'Mejoramiento', d:'No es un planeta más: como un cometa, recorre todo el sistema y deja a su paso una estela de mejora en cada área.\nPlanes de mejora, acciones correctivas e indicadores de proceso.', c:['Planes de mejora','Acciones correctivas','Indicadores']}],
+      {k:'Área de Mejoramiento · Transformación Digital', t:'Modelo de Transformación Digital CHVS', d:'No es un planeta más: como un cometa, recorre todo el sistema y lleva el modelo a cada área. Mejoramiento deja de ser una ventanilla de solicitudes para ser el área que, con la Gerencia y los líderes, decide qué mejorar primero y lo ejecuta sobre datos confiables.\nCada nivel se apoya en el anterior: la IA solo funciona sobre datos confiables y procesos ordenados.',
+       c:['Ordenar','Conectar','Anticipar'],
+       p:[['1 · Ordenar','Gobierno de datos y procesos: saber qué procesos y datos críticos hay, dónde está la versión oficial y quién responde por ella.'],
+          ['2 · Conectar','Integración y automatización: que la información fluya entre áreas sin redigitarse. Vantage, SIESA y el WMS ya van en este nivel.'],
+          ['3 · Anticipar','Analítica e IA: anticipar y recomendar, con decisión humana. Cuánto comprar, alertas antes de que falte o se venza inventario.'],
+          ['Gobernanza','Comité de Mejoramiento, entrada única de solicitudes, líderes dueños de sus procesos y datos, y políticas de datos personales (Ley 1581) e IA.'],
+          ['Metodología en 5 pasos','Identificar y levantar el AS-IS · Diagnosticar · Diseñar el TO-BE · Construir y probar · Poner en marcha, medir y entregar al área.'],
+          ['Madurez digital','Mide cuánto ha subido cada área, desde el nivel 0: papel, Excel suelto y apps aisladas.']],
+       f:[['Principio','La IA recomienda, la persona decide'],['Primero','El proceso, después la tecnología'],['Regla del dato','Un dato, una fuente, un dueño'],['Lema','Servimos con propósito, transformamos con el corazón']]}],
     ...Object.entries(AREAS).map(([id, A]) => [id, A.pos, id === 'gerencia' ? 1.5 : 1, () => atom(AREA[A.icon], A.estado, A.procs), A.name, A.estado === 'futuro' ? 'fut' : '',
       {k:ESTADO[A.estado] + ' · Toca para entrar', t:A.name, d:A.d, c:A.roles}]),
   ]);
@@ -725,7 +737,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
 
   // Enlaces entre átomos: no todo pasa por Vantage
   const V_HOY = ['programas','nutricion','aseguramiento','logistica','compras','costos','administrativo'];
-  const FUT = 'Conexión por construir entre áreas, no necesariamente a través de Vantage.';
+  const FUT = 'Conexión por construir entre áreas en el nivel Conectar del modelo: que la información fluya sin redigitarse, no necesariamente a través de Vantage.';
   const futuro = (a, b) => ({id:'f-' + a + '-' + b, a, b, k:'fut', bend:[0,2.4,0], t:NAMES[a] + ' ↔ ' + NAMES[b], d:FUT, c:[]});
   VIS.FLOWS = [
     ...V_HOY.map(id => ({id:'v-' + id, a:'vantage', b:id, k:'hoy', bend:[0,1.4,0], t:'Vantage ↔ ' + NAMES[id], d:'El área usa Vantage en su día a día.', c:[]})),
@@ -749,7 +761,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
              wip:{col:YELLOW, rad:.08, op:.6, n:0, sp:0, eb:'En construcción'},
              hoy:{col:MID, rad:.07, op:.35, n:4, sp:.12, eb:'Conectada hoy'},
              parc:{col:LIGHT, rad:.06, op:.32, n:2, sp:.09, eb:'En camino'},
-             fut:{col:0xa9bdb0, rad:.04, op:.4, n:2, sp:.05, eb:'Visión'},
+             fut:{col:0xa9bdb0, rad:.04, op:.4, n:2, sp:.05, eb:'Por conectar'},
              comp:{col:0x1fa59a, rad:.055, op:.45, n:3, sp:.08, eb:'Proceso compartido'},
              wms:{col:NAVY, rad:.085, op:.36, n:4, sp:.13, eb:'SIESA → WMS'},
              wmsr:{col:BLUE_L, rad:.08, op:.36, n:4, sp:.11, eb:'WMS → SIESA'},
@@ -1032,6 +1044,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   let lastW = 0;
   function resize(){
     renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    placeCard();
     const anchoCambio = innerWidth !== lastW; lastW = innerWidth;
     if (!anchoCambio) return;  // en el celular, mostrar u ocultar la barra del navegador solo cambia el alto
     if (tour.on || sel) return;
@@ -1079,7 +1092,20 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     (card.f || []).forEach(([a, b]) => { const r = document.createElement('div'); const dt = document.createElement('dt'); const dd = document.createElement('dd'); dt.textContent = a; dd.textContent = b; r.append(dt, dd); dl.appendChild(r); });
     dl.hidden = !(card.f && card.f.length);
     $('#card').hidden = false; $('#card').scrollTop = 0;
-    if (innerWidth <= 720) { const bar = $('#bar'); $('#card').style.bottom = ((bar.hidden ? 70 : bar.offsetHeight + 28) + 'px'); }
+    placeCard();
+  }
+  // Ubica la tarjeta encima de la barra inferior que esté visible (filtros, visión o "Dentro de")
+  function placeCard(){
+    const card = $('#card'); if (card.hidden) return;
+    const barra = ['#bar', '#vision', '#dentro'].map(q => $(q)).find(el => !el.hidden);
+    const libre = barra ? innerHeight - barra.getBoundingClientRect().top + 14 : 24;
+    if (innerWidth <= 720) {
+      card.style.bottom = libre + 'px';
+      card.style.maxHeight = Math.max(160, Math.min(innerHeight * .46, innerHeight - libre - 110)) + 'px';
+    } else {
+      card.style.bottom = '';
+      card.style.maxHeight = Math.max(200, Math.min(innerHeight - 170, 2 * (innerHeight / 2 - libre))) + 'px';
+    }
   }
   function closeCard(){ sel = null; $('#card').hidden = true; }
   $('#cardClose').addEventListener('click', () => { stopTour(); closeCard(); focusFilter(); });
@@ -1143,6 +1169,9 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   function syncUI(){
     $('#bar').hidden = W !== OUT;
     $('#vision').hidden = W !== VIS;
+    const enVision = W === VIS || !!W.area;
+    $('h1').textContent = enVision ? 'Transformación digital CHVS' : 'Circulación Vantage, SIESA y WMS';
+    $('.sub .hint').textContent = enVision ? 'Ordenar → Conectar → Anticipar · ' : 'Arrastra para girar · toca para ver · ';
     $('.leyenda').hidden = W !== OUT && W !== IN && W !== WMSW;
     const inside = W === IN || W === WMSW || !!W.area;
     $('#dentro').hidden = !inside;

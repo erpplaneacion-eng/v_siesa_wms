@@ -35,6 +35,7 @@ header{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:20px
 h1{font:800 clamp(26px,4vw,40px)/1 "League Spartan",sans-serif;margin:6px 0 0;color:var(--tinta);text-wrap:balance}
 .sub{margin:8px 0 0;color:var(--gris);font-size:13px}
 .sub a{color:var(--verde);font-weight:600}
+.sub .hint-m{display:none}
 .leyenda{pointer-events:auto;display:grid;gap:6px;background:rgba(255,255,255,.92);border:1px solid var(--linea);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--gris)}
 .leyenda span{display:flex;align-items:center;gap:8px}
 .leyenda i{display:inline-block;width:26px;height:5px;border-radius:3px}
@@ -100,7 +101,21 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
 @media (max-width:720px){
   .leyenda{display:none}
   .sub .hint{display:none}
-  #card{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);right:16px;left:16px;width:auto;transform:none;max-height:52vh}
+  .sub .hint-m{display:inline}
+  #card{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);right:16px;left:16px;width:auto;transform:none;max-height:46vh;padding:16px 16px 14px}
+  #card::before{margin:-16px -16px 12px}
+  #card h2{font-size:22px}
+  header{left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px)}
+  h1{font-size:24px}
+  .lbl{font-size:11px;padding:2px 5px}
+  .lbl.big{font-size:17px}
+  .lbl.agente{font-size:13px;padding:4px 8px}
+  .lbl.sm{font-size:10px}
+  #dentro{white-space:normal;max-width:calc(100% - 32px);padding:6px 6px 6px 14px}
+  #dentro span{display:none}
+  #vision{gap:8px;padding:8px 8px 8px 14px}
+  #vision .hint2{display:none}
+  .fila button{padding:9px 11px;font-size:12px}
 }
 </style>
 
@@ -115,7 +130,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     <div class="titulo">
       <div class="firma">Corporación Hacia un Valle Solidario</div>
       <h1>Circulación Vantage, SIESA y WMS</h1>
-      <p class="sub"><span class="hint">Arrastra para girar · toca para ver · </span><a href="index.html">Informe detallado ↗</a></p>
+      <p class="sub"><span class="hint">Arrastra para girar · toca para ver · </span><span class="hint-m">Arrastra para girar · pellizca para acercar · </span><a href="index.html">Informe detallado ↗</a></p>
     </div>
     <div class="leyenda" aria-hidden="true">
       <span><i style="background:#009640"></i>Sale de Vantage</span>
@@ -1038,7 +1053,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     const pts = Object.values(OUT.N).filter(n => nodeOn(OUT, n.id)).map(n => n.pos);
     const c = pts.reduce((a, p) => a.add(p), new THREE.Vector3()).multiplyScalar(1 / pts.length);
     const span = Math.max(...pts.map(p => p.distanceTo(c)));
-    cam.want.copy(c); cam.wantR = Math.max(15, span * 2.8) * (narrow() ? 1.4 : 1);
+    const tanH = TAN_V * innerWidth / innerHeight;
+    cam.want.copy(c); cam.wantR = Math.max(15, span * 2.8, (span + 2.5) / Math.min(tanH, TAN_V) * 1.05);
   }
   document.querySelectorAll('#filtros [data-f]').forEach(b => b.addEventListener('click', () => { stopTour(); closeCard(); setFilter(b.dataset.f); focusFilter(); }));
   document.querySelectorAll('#sub [data-s]').forEach(b => b.addEventListener('click', () => { stopTour(); closeCard(); setFilter('siesa', b.dataset.s); }));
@@ -1088,7 +1104,9 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     const s = STOPS[tour.i];
     setFilter(s.f, s.s); openCard(s);
     const p = s.type === 'node' ? OUT.N[s.id].pos.clone() : OUT.FLOWS.find(f => f.id === s.id).curve.getPointAt(.5);
-    cam.want.copy(p); cam.wantR = (s.id === 'vantage' ? 18 : 16) * (narrow() ? 1.4 : 1);
+    cam.wantR = (s.id === 'vantage' ? 18 : 16) * (narrow() ? 2.4 : 1);
+    if (narrow()) p.y -= cam.wantR * .22;
+    cam.want.copy(p);
     $('#tourNav').hidden = false; $('#tourStep').textContent = (tour.i + 1) + ' de ' + STOPS.length;
   }
   function startTour(){ tour.on = true; $('#tour').classList.add('on'); $('#tour').textContent = '■ Detener'; goStop(0); }
@@ -1104,7 +1122,22 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     const f = $('#flash'); f.style.transition = 'none'; f.style.opacity = 1;
     requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity .8s ease'; f.style.opacity = 0; }));
   }
-  const homeOf = Wd => Wd === OUT ? [HOME, defaultR()] : Wd === IN ? [HOME_IN, insideR()] : Wd === VIS ? [HOME_VIS, visionR()] : Wd === WMSW ? [HOME_WMS, wmsR()] : [HOME_AREA, areaR()];
+  // En vertical el campo horizontal es muy angosto: se calcula la distancia para que entren todos los nodos
+  const TAN_V = Math.tan(21 * Math.PI / 180);
+  function fitR(Wd, h){
+    const tanH = TAN_V * innerWidth / innerHeight;
+    let ex = 0, ey = 0;
+    Object.values(Wd.N).forEach(n => {
+      if (n.comet) return;
+      const pad = n.r * 1.6 + .8;
+      ex = Math.max(ex, Math.abs(n.pos.x - h.x) + pad);
+      ey = Math.max(ey, (Wd === VIS ? Math.abs(n.pos.z - h.z) : Math.abs(n.pos.y - h.y)) + pad);
+    });
+    return Math.max(ex / tanH, ey / TAN_V) * 1.06;
+  }
+  const fit = (Wd, h, R) => innerWidth / innerHeight < 1 ? [h, Math.max(R, fitR(Wd, h))] : [h, R];
+  const homeOfBase = Wd => Wd === OUT ? [HOME, defaultR()] : Wd === IN ? [HOME_IN, insideR()] : Wd === VIS ? [HOME_VIS, visionR()] : Wd === WMSW ? [HOME_WMS, wmsR()] : [HOME_AREA, areaR()];
+  const homeOf = Wd => { const [h, R] = homeOfBase(Wd); return fit(Wd, h, R); };
   function syncUI(){
     $('#bar').hidden = W !== OUT;
     $('#vision').hidden = W !== VIS;
@@ -1155,7 +1188,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   function startExpansion(){
     OUT.group.visible = false; OUT.labels.forEach(l => l.style.opacity = 0); OUT.group.scale.setScalar(1);
     W = VIS; VIS.group.visible = true; inScale = 1; VIS.group.scale.setScalar(1);
-    cam.target.copy(VIS.N.vantage.pos); cam.r = 4.5; cam.want.copy(HOME_VIS); cam.wantR = visionR(); cam.theta = 0; cam.phi = .42;
+    cam.target.copy(VIS.N.vantage.pos); cam.r = 4.5; cam.want.copy(HOME_VIS); cam.wantR = homeOf(VIS)[1]; cam.theta = 0; cam.phi = .42;
     mode = 'vision'; expanding = true; syncUI();
   }
   // Volver al presente: la cámara entra en la Tierra y el mapa renace
@@ -1198,8 +1231,24 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   }
   const enterable = (Wd, id) => ((Wd === OUT || Wd === VIS) && id === 'vantage') || ((Wd === OUT || Wd === VIS) && id === 'wms') || (Wd === VIS && !!AREAS[id]);
   const titleOf = u => u.type === 'node' ? (enterable(W, u.id) ? 'Entrar a ' + W.N[u.id].card.t : W.N[u.id].card.t) : W.FLOWS.find(f => f.id === u.id).t;
-  canvas.addEventListener('pointerdown', e => { down = {x:e.clientX, y:e.clientY, moved:0}; canvas.setPointerCapture(e.pointerId); canvas.classList.add('drag'); });
+  const touches = new Map(); let pinch = 0, pinched = false;
+  const pinchDist = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  const maxR = () => Math.max(60, homeOf(W)[1] * 1.5);
+  canvas.addEventListener('pointerdown', e => {
+    touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if (touches.size === 2) { pinch = pinchDist(); pinched = true; down = null; return; }
+    if (touches.size === 1) pinched = false;
+    down = {x:e.clientX, y:e.clientY, moved:0}; canvas.setPointerCapture(e.pointerId); canvas.classList.add('drag');
+  });
+  const endTouch = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = 0; };
+  canvas.addEventListener('pointercancel', e => { endTouch(e); down = null; canvas.classList.remove('drag'); });
   canvas.addEventListener('pointermove', e => {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if (pinch && touches.size === 2) {
+      const d = pinchDist();
+      if (d > 0 && mode !== 'diving') { cam.wantR = Math.min(maxR(), Math.max(6, cam.wantR * pinch / d)); idleUntil = performance.now() + 7000; }
+      pinch = d; tip.hidden = true; return;
+    }
     if (down) {
       const dx = e.clientX - down.x, dy = e.clientY - down.y; down.moved += Math.abs(dx) + Math.abs(dy); down.x = e.clientX; down.y = e.clientY;
       if (mode !== 'diving') { cam.theta -= dx * .006; cam.phi = Math.min(2.6, Math.max(.35, cam.phi - dy * .006)); idleUntil = performance.now() + 7000; }
@@ -1212,8 +1261,9 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     else tip.hidden = true;
   });
   canvas.addEventListener('pointerup', e => {
+    endTouch(e);
     canvas.classList.remove('drag');
-    if (down && down.moved < 7) {
+    if (down && down.moved < 7 && !pinched) {
       const u = pick(e.clientX, e.clientY);
       stopTour();
       if (u && u.type === 'node' && enterable(W, u.id)) diveInto(W.N[u.id].pos.clone().multiplyScalar(W.group.scale.x), worldOf(W, u.id));
@@ -1222,7 +1272,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     down = null;
   });
   canvas.addEventListener('pointerleave', () => { tip.hidden = true; });
-  canvas.addEventListener('wheel', e => { e.preventDefault(); if (mode === 'diving') return; cam.wantR = Math.min(60, Math.max(8, cam.wantR * (1 + e.deltaY * .001))); idleUntil = performance.now() + 7000; }, {passive:false});
+  canvas.addEventListener('wheel', e => { e.preventDefault(); if (mode === 'diving') return; cam.wantR = Math.min(maxR(), Math.max(8, cam.wantR * (1 + e.deltaY * .001))); idleUntil = performance.now() + 7000; }, {passive:false});
 
   // ---------- Animación ----------
   const tmp = new THREE.Vector3();

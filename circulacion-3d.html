@@ -143,6 +143,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       <span><i style="background:#1f3a68"></i>SIESA → WMS</span>
       <span><i style="background:#5f86e0"></i>WMS → SIESA</span>
       <span><i style="background:#F2B705"></i>En construcción</span>
+      <span><b style="display:inline-block;width:26px;text-align:center;font-size:16px;line-height:1;color:#009640">→</b>La punta señala quién recibe</span>
+      <span><b style="display:inline-block;width:26px;text-align:center;font-size:16px;line-height:1;color:#009640">↔</b>Punta en los dos lados: va y vuelve</span>
     </div>
   </header>
 
@@ -159,7 +161,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     </div>
   </aside>
 
-  <div id="vision" hidden><b>Transformación digital CHVS</b><span class="modelo">Ordenar <i>→</i> Conectar <i>→</i> Anticipar</span><span class="leg"><i class="d-hoy"></i>Conectado hoy <i class="d-par"></i>En camino <i class="d-fut"></i>Por transformar <i class="d-comp"></i>Compartido</span><span class="hint2">Toca el cometa de Mejoramiento para ver el modelo · La IA recomienda, la persona decide</span><button id="presente">← Volver al presente</button></div>
+  <div id="vision" hidden><b>Transformación digital CHVS</b><span class="modelo">Ordenar <i>→</i> Conectar <i>→</i> Anticipar</span><span class="leg"><i class="d-hoy"></i>Conectado hoy <i class="d-par"></i>En camino <i class="d-fut"></i>Por transformar <i class="d-comp"></i>Compartido <b style="color:#E8C547;margin-left:6px">→</b>Al presupuesto (Costos)</span><span class="hint2">Toca el cometa de Mejoramiento para ver el modelo · La IA recomienda, la persona decide</span><button id="presente">← Volver al presente</button></div>
   <div id="dentro" hidden><b id="dentroT">Dentro de Vantage</b><span id="dentroS">Toca un módulo para verlo</span><button id="salir">← Volver al mapa</button></div>
   <div id="flash"></div>
 
@@ -336,7 +338,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     ['empleados', [-11.5,-3,-1.5], .95, database, 'Base de empleados', '',
       {k:'Base de datos externa', t:'Base de empleados', d:'Base de personal que Vantage consulta para emitir certificados y carnets.', c:['Solo lectura']}],
     ['resend', [-9,1.5,3.5], .95, () => coin(svgPaint('resend')), 'Resend', '',
-      {k:'API de correo', t:'Resend', d:'Envía los correos de Vantage: órdenes de compra a proveedores y reportes a los equipos.', c:['Correo automático']}],
+      {k:'API de correo', t:'Resend', d:'Envía los correos de Vantage: reportes de RQC y consolidados de reposiciones.', c:['Correo automático']}],
     ['cloudinary', [-8,-3,4.5], .9, () => coin(svgPaint('cloudinary')), 'Cloudinary', '',
       {k:'API de archivos', t:'Cloudinary', d:'Guarda logos, firmas y fotos de evidencia.', c:['Archivos']}],
     ['mcp', [-6.5,5.2,0], 1, () => coin(svgPaint('mcp')), 'MCP', '',
@@ -364,6 +366,16 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     x.strokeStyle = '#E0A100'; x.lineWidth = 16; x.lineCap = 'round'; x.lineJoin = 'round';
     x.beginPath(); x.moveTo(190, 196); x.quadraticCurveTo(256, 150, 322, 196); x.stroke();
     x.beginPath(); x.moveTo(296, 178); x.lineTo(324, 198); x.lineTo(300, 222); x.stroke();
+  }
+  // API SIESA: flechas de sincronización alrededor de la palabra API
+  function apiPaint(x){
+    x.strokeStyle = '#002DAC'; x.lineWidth = 22; x.lineCap = 'round'; x.lineJoin = 'round';
+    x.beginPath(); x.arc(256, 256, 150, Math.PI * 1.1, Math.PI * 1.85); x.stroke();
+    x.beginPath(); x.arc(256, 256, 150, Math.PI * .1, Math.PI * .85); x.stroke();
+    const head = a => { const X = 256 + 150 * Math.cos(a), Y = 256 + 150 * Math.sin(a), t = a + Math.PI / 2;
+      x.beginPath(); x.moveTo(X + 34 * Math.cos(t - 2.4), Y + 34 * Math.sin(t - 2.4)); x.lineTo(X, Y); x.lineTo(X + 34 * Math.cos(t + 2.4), Y + 34 * Math.sin(t + 2.4)); x.stroke(); };
+    head(Math.PI * 1.85); head(Math.PI * .85);
+    x.fillStyle = '#002DAC'; x.font = '800 116px "League Spartan", Poppins, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('API', 256, 266);
   }
   // MUV WMS: bodega con estantes, cajas y código de barras
   function wmsPaint(x){
@@ -431,29 +443,32 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   };
   const areaCoin = id => () => coin(AREA[id]);
 
-  // Interior: Planeación al centro, los demás módulos en arco a la izquierda y SIESA sola a la derecha
+  // Interior: Planeación al centro; Facturación, Logística y Calidad a la izquierda; Costos, Nutrición, Supervisión y Compras abajo,
+  // API SIESA en la mitad entre Planeación y SIESA, y Traslados abajo a la derecha
   const arc = (deg, z) => { const t = deg * Math.PI / 180; return [6.8 * Math.cos(t), 6.8 * Math.sin(t) * .85, z]; };
   addNodes(IN, [
     ['planeacion', [0,0,0], 1.25, areaCoin('planeacion'), 'Planeación', 'big',
       {k:'Módulo central', t:'Planeación', d:'Calcula qué comprar y entregar a cada sede, arma los despachos y envía las requisiciones a SIESA.', c:['Necesidades','RQC','Solicitudes de compra']}],
-    ['compras', arc(110, .8), .75, areaCoin('compras'), 'Compras', '',
+    ['compras', arc(314, .8), .75, areaCoin('compras'), 'Compras', '',
       {k:'Módulo', t:'Compras', d:'Agrupa las solicitudes y crea en SIESA una orden de compra por proveedor. También operará los traslados entre bodegas.', c:['OCO','Proveedores','Traslados (en construcción)']}],
-    ['nutricion', arc(133, -1), .75, areaCoin('nutricion'), 'Nutrición', '',
+    ['nutricion', arc(262, -1), .75, areaCoin('nutricion'), 'Nutrición', '',
       {k:'Módulo', t:'Nutrición', d:'Menús y preparaciones por nivel escolar, con semáforo nutricional y el match de cada alimento con su producto SIESA.', c:['Menús','Gramajes']}],
-    ['costos', arc(156, 1), .7, areaCoin('costos'), 'Costos', '',
+    ['costos', arc(236, 1), .7, areaCoin('costos'), 'Costos', '',
       {k:'Módulo', t:'Costos', d:'Aquí queda registrada la matriz nutricional de cada programa.', c:['Matriz nutricional']}],
-    ['supervision', arc(180, -1), .7, areaCoin('supervision'), 'Supervisión', '',
+    ['supervision', arc(288, .6), .7, areaCoin('supervision'), 'Supervisión', '',
       {k:'Módulo', t:'Supervisión', d:'Los supervisores ajustan en campo lo que cada sede ya tiene; el coordinador aprueba y envía.', c:['Disminuciones']}],
-    ['facturacion', arc(204, 1), .75, areaCoin('facturacion'), 'Facturación', '',
+    ['facturacion', arc(140, -1), .75, areaCoin('facturacion'), 'Facturación', '',
       {k:'Módulo', t:'Facturación', d:'Carga la focalización y calcula las raciones a facturar según lo que realmente se despachó.', c:['Focalización','Raciones']}],
-    ['logistica', arc(227, -1), .7, areaCoin('logistica'), 'Logística', '',
+    ['logistica', arc(172, 1), .7, areaCoin('logistica'), 'Logística', '',
       {k:'Módulo', t:'Logística', d:'Calendario de despachos, documentos de entrega, conteo físico y reposiciones.', c:['Entregas']}],
-    ['calidad', arc(250, .8), .7, areaCoin('calidad'), 'Calidad', '',
+    ['calidad', arc(204, -1), .7, areaCoin('calidad'), 'Calidad', '',
       {k:'Módulo', t:'Calidad', d:'Certificados BPM, carnets y guías de transporte de congelados.', c:['BPM','Congelados']}],
-    ['traslados', [4.8,2.7,1.6], .8, () => coin(trasladoPaint, YELLOW), 'Traslados', 'amarillo',
+    ['traslados', [8.8,-4.4,1.2], .8, () => coin(trasladoPaint, YELLOW), 'Traslados', 'amarillo',
       {k:'En construcción', t:'Traslados entre bodegas', d:'Mover mercancía entre bodegas dentro de SIESA, por ejemplo de Yumbo a Buga o de un operador a la bodega central. SIESA ya publicó los servicios; Vantage los conectará desde Compras.', c:['RQT · Requisición de transferencia','TTS → TTE · Salida y entrada','En construcción']}],
+    ['apisiesa', [4.4,-1.5,.6], .85, () => coin(apiPaint, BLUE), 'API SIESA · maestros', 'azul',
+      {k:'Módulo · Sincronización', t:'API SIESA · Catálogo de maestros', d:'La copia local de SIESA dentro de Vantage. Trae los maestros con los que los demás módulos construyen, y trae de vuelta el consecutivo y el estado de cada RQC y OCO que Vantage creó.', c:['26 catálogos','Cada 6 h','Consecutivos y estados']}],
     ['siesa', [9.5,.4,-.5], 1.05, () => coin(imgPaint(SIESA_PNG, 430), BLUE), 'SIESA', 'azul',
-      {k:'Fuera de Vantage', t:'SIESA', d:'Planeación y Compras son los módulos que crean documentos en SIESA.', c:['RQC','OCO']}],
+      {k:'Fuera de Vantage', t:'SIESA', d:'Recibe las RQC de Planeación y las OCO de Compras, les pone su consecutivo y le entrega a Vantage, por la API, los maestros y el estado de cada documento.', c:['RQC','OCO','Maestros']}],
   ]);
 
   // ---------- Dentro del WMS: el CEDI al centro, los procesos en anillo y SIESA a la izquierda ----------
@@ -591,12 +606,13 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       d:'Líder de compras, compradores de víveres y perecederos y analista técnica.', procs:[
       ['Órdenes de compra', 'hoy', 'Una por proveedor, creadas en SIESA desde Vantage.', ['vantage', 'siesa']],
       ['Proveedores y descuentos', 'hoy', 'Maestro de proveedores con precio y descuento.', ['vantage']],
-      ['Correo al proveedor', 'hoy', 'La orden en PDF llega al correo del proveedor.', ['vantage']],
+      ['PDF y correo al proveedor', 'obra', 'La orden en PDF al correo del proveedor, todavía en ajuste.', ['vantage']],
       ['Traslados entre bodegas', 'obra', 'Mover mercancía entre bodegas en SIESA.', ['siesa']],
       ['Cotizaciones y evaluación', 'futuro', 'Comparar ofertas y calificar proveedores.']]},
     costos: {name:'Costos', icon:'costos', estado:'hoy', pos:[12.5,3,0], roles:['Coordinador de costos'],
-      d:'Coordinación de costos de los programas.', procs:[
-      ['Matriz nutricional', 'hoy', 'Registro de la matriz nutricional de cada programa.', ['vantage']],
+      d:'Coordinación de costos de los programas. En la visión es el punto, junto a Gerencia, donde llega la información de todas las áreas: aquí se arma el presupuesto de cada área para el próximo año.', procs:[
+      ['Matriz nutricional', 'hoy', 'Revisión de la matriz nutricional de cada programa.', ['vantage']],
+      ['Presupuesto anual por área', 'futuro', 'Con lo que reporta cada área se arma su presupuesto del próximo año y se entrega a Gerencia.', ['gerencia']],
       ['Costo real por ración', 'futuro', 'El costo por ración siempre al día.']]},
     administrativo: {name:'Administrativo', icon:'planeacion', estado:'hoy', pos:[-12.5,-2.5,0], roles:['Planeación','Facturación'],
       d:'Líder administrativo con los analistas de planeación y de facturación.', procs:[
@@ -627,8 +643,9 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       ['Alertas de vencimiento', 'futuro', 'Avisos antes de que venza un contrato o una póliza.'],
       ['Asesoría a Gerencia', 'futuro', 'Conceptos jurídicos con la información a la mano.', ['gerencia']]]},
   };
-  // Sistema solar: Gerencia es el sol; operación en la 2.ª órbita y apoyo en la 3.ª. [radio, ángulo, altura]
-  const ORBITA = {gerencia:[0,0,.6], nutricion:[12,116,.4], compras:[12,64,.4], costos:[12,13,-.3], logistica:[12,-39,.4],
+  // Sistema solar: Gerencia es el sol; Costos casi pegado a él, donde llega la información de todas las áreas;
+  // operación en la 2.ª órbita y apoyo en la 3.ª. [radio, ángulo, altura]
+  const ORBITA = {gerencia:[0,0,.6], nutricion:[12,116,.4], compras:[12,64,.4], costos:[4.2,150,.3], logistica:[12,-39,.4],
     administrativo:[12,-90,-.3], programas:[12,-141,.4], aseguramiento:[12,168,-.3],
     financiero:[17,40,-.5], juridico:[17,-50,-.5], comunicacion:[17,-125,.5], talento:[17,150,.5]};
   Object.entries(ORBITA).forEach(([id, [R, deg, y]]) => { const t = deg * Math.PI / 180; AREAS[id].pos = [R * Math.cos(t), y, R * Math.sin(t)]; });
@@ -749,6 +766,9 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     futuro('comunicacion', 'talento'), futuro('comunicacion', 'programas'),
     futuro('juridico', 'gerencia'), futuro('juridico', 'compras'),
     futuro('talento', 'programas'),
+    ...['programas','nutricion','aseguramiento','logistica','compras','administrativo','financiero','talento','comunicacion','juridico'].map(id =>
+      ({id:'p-' + id, a:id, b:'costos', k:'pres', t:NAMES[id] + ' → Costos', d:'Lo que el área reporta para armar su presupuesto del próximo año: lo que gastó, lo que proyecta y lo que necesita.', c:['Presupuesto']})),
+    {id:'p-gerencia', a:'costos', b:'gerencia', k:'pres', t:'Costos → Gerencia', d:'Costos consolida la información de todas las áreas y le entrega a Gerencia el presupuesto de cada una para el próximo año.', c:['Presupuesto anual']},
     {id:'v-wms-siesa', a:'wms', b:'siesa', k:'parc', bend:[0,1.8,0], t:'MUV WMS ↔ SIESA', d:'SIESA le pasa las OC y las requisiciones; el WMS le devuelve lo recibido, lo preparado y los ajustes. Son las 8 interfaces del acta con MUVUM.', c:['8 interfaces']},
     {id:'v-wms-log', a:'logistica', b:'wms', k:'parc', bend:[0,1.2,0], t:'Logística ↔ MUV WMS', d:'Logística opera el CEDI con el WMS: recibe, ubica, prepara y embarca con terminales de radiofrecuencia.', c:['Operación diaria']},
   ];
@@ -757,16 +777,18 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   const K = {art:{col:DARK, rad:.09, op:.34, n:4, sp:.15, eb:'Sale de Vantage'},
              ven:{col:LIGHT, rad:.085, op:.34, n:4, sp:.11, eb:'Regresa a Vantage'},
              bi:{col:MID, rad:.075, op:.3, n:4, sp:.12, eb:'Va y vuelve'},
-             int:{col:MID, rad:.06, op:.3, n:3, sp:.13, eb:'Dentro de Vantage'},
+             int:{col:MID, rad:.06, op:.3, n:3, sp:.13, eb:'Dentro de Vantage · una vía'},
+             intb:{col:MID, rad:.06, op:.3, n:4, sp:.12, eb:'Dentro de Vantage · va y vuelve'},
              wip:{col:YELLOW, rad:.08, op:.6, n:0, sp:0, eb:'En construcción'},
              hoy:{col:MID, rad:.07, op:.35, n:4, sp:.12, eb:'Conectada hoy'},
              parc:{col:LIGHT, rad:.06, op:.32, n:2, sp:.09, eb:'En camino'},
+             pres:{col:0xE8C547, rad:.05, op:.5, n:2, sp:.07, eb:'Información para el presupuesto'},
              fut:{col:0xa9bdb0, rad:.04, op:.4, n:2, sp:.05, eb:'Por conectar'},
              comp:{col:0x1fa59a, rad:.055, op:.45, n:3, sp:.08, eb:'Proceso compartido'},
              wms:{col:NAVY, rad:.085, op:.36, n:4, sp:.13, eb:'SIESA → WMS'},
              wmsr:{col:BLUE_L, rad:.08, op:.36, n:4, sp:.11, eb:'WMS → SIESA'},
              wint:{col:NAVY, rad:.06, op:.28, n:3, sp:.13, eb:'Dentro del WMS'}};
-  const NAVY_K = {wms:1, wmsr:1, wint:1};
+  const NAVY_K = {wms:1, wmsr:1, wint:1}, TWO_WAY = {bi:1, hoy:1, intb:1};
   OUT.FLOWS = [
     {id:'rqc', a:'vantage', b:'siesa', k:'art', g:'siesa', s:'rqc', tag:'RQC', bend:[0,1.9,-.6], t:'RQC · Requisición', d:'Pide a SIESA la salida de alimentos para cada sede y ruta. Sale sola cada 5 minutos.', c:['Automática','Cada 5 min']},
     {id:'oco', a:'vantage', b:'siesa', k:'art', g:'siesa', s:'oco', tag:'OCO', bend:[0,-1.9,.6], t:'OCO · Orden de compra', d:'Una por proveedor, con precio y descuento. SIESA calcula impuestos y totales.', c:['Una por proveedor']},
@@ -787,17 +809,22 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     {id:'grok', a:'grok', b:'mcp', k:'bi', g:'mcp', t:'Grok ↔ MCP', d:'Grok consulta y opera Vantage a través de la puerta MCP.', c:[]},
   ];
   IN.FLOWS = [
-    {id:'i-menu', a:'nutricion', b:'planeacion', k:'int', t:'Menús y gramos', d:'Los menús aprobados y sus gramajes son la base del cálculo de compras.', c:[]},
-    {id:'i-matriz', a:'nutricion', b:'costos', k:'int', bend:[-1.2,0,0], t:'Matriz nutricional', d:'Cada menú queda registrado en la matriz nutricional del programa.', c:[]},
-    {id:'i-foc', a:'facturacion', b:'planeacion', k:'int', t:'Focalización y raciones', d:'Los listados de focalización definen cuántas raciones se planean por sede. Facturación luego cobra lo despachado.', c:[]},
-    {id:'i-sup', a:'supervision', b:'planeacion', k:'int', t:'Disminuciones', d:'Lo que la sede ya tiene se descuenta antes de enviar la requisición.', c:[]},
-    {id:'i-sc', a:'planeacion', b:'compras', k:'int', t:'Solicitudes de compra', d:'Planeación confirma qué comprar y Compras arma las órdenes por proveedor.', c:[]},
-    {id:'i-log', a:'planeacion', b:'logistica', k:'int', t:'Despachos y documentos', d:'Remisiones, actas, portadas por ruta y consolidados para entregar.', c:[]},
-    {id:'i-cal', a:'planeacion', b:'calidad', k:'int', t:'Calendario y congelados', d:'Calidad consulta el calendario de compras y genera las guías de transporte.', c:[]},
-    {id:'i-tras1', a:'compras', b:'traslados', k:'wip', bend:[0,-.8,.6], t:'Compras → Traslados', d:'Compras pedirá los traslados entre bodegas desde Vantage.', c:['En construcción']},
+    {id:'i-menu', a:'nutricion', b:'planeacion', k:'int', t:'Nutrición → Planeación · Menús y gramos', d:'Los menús aprobados y sus gramajes por nivel son la base del cálculo de compras.', c:['Una vía']},
+    {id:'i-matriz', a:'nutricion', b:'costos', k:'int', bend:[-.3,-.6,0], t:'Nutrición → Costos · Matriz nutricional', d:'Costos revisa la matriz nutricional que sale de los menús de Nutrición: qué producto SIESA y qué peso lleva cada preparación. Por ahora es solo de consulta: no le devuelve nada a Nutrición.', c:['Una vía','Solo revisión']},
+    {id:'i-foc', a:'facturacion', b:'planeacion', k:'intb', t:'Facturación ↔ Planeación', d:'Facturación → Planeación: la focalización define cuántas raciones se planean por sede, grado y modalidad.\nPlaneación → Facturación: lo despachado, que es lo que se factura.', c:['Va y vuelve']},
+    {id:'i-sup', a:'planeacion', b:'supervision', k:'intb', t:'Planeación ↔ Supervisión', d:'Planeación → Supervisión: la requisición calculada de cada sede, por período.\nSupervisión → Planeación: las disminuciones, lo que la sede ya tiene y no hay que despachar. Con eso el coordinador aprueba y envía la RQC.', c:['Va y vuelve']},
+    {id:'i-fruver', a:'supervision', b:'compras', k:'int', bend:[0,-.8,0], t:'Supervisión → Compras · Fruver', d:'El coordinador confirma la solicitud de frutas y verduras y la manda a Compras.', c:['Una vía']},
+    {id:'i-sc', a:'planeacion', b:'compras', k:'int', t:'Planeación → Compras · Solicitudes de compra', d:'Planeación confirma ítem por ítem qué comprar, también las reposiciones, y Compras arma las órdenes por proveedor.', c:['Una vía']},
+    {id:'i-log', a:'planeacion', b:'logistica', k:'intb', t:'Planeación ↔ Logística', d:'Planeación → Logística: los períodos liberados con remisiones, actas, portadas por ruta y consolidados.\nLogística → Planeación: las solicitudes de reposición, ya con visto bueno, para que Planeación las compre.', c:['Va y vuelve']},
+    {id:'i-cal', a:'planeacion', b:'calidad', k:'int', t:'Planeación → Calidad · Despachos y calendario', d:'Calidad toma los despachos de congelados para las guías de transporte y consulta el calendario de compras.', c:['Una vía']},
+    {id:'i-tras1', a:'compras', b:'traslados', k:'wip', bend:[0,-1,.6], t:'Compras → Traslados', d:'Compras pedirá los traslados entre bodegas desde Vantage.', c:['En construcción']},
     {id:'i-tras2', a:'traslados', b:'siesa', k:'wip', t:'Traslados → SIESA', d:'SIESA registrará la requisición de transferencia (RQT) y el movimiento entre bodegas (TTS → TTE).', c:['En construcción']},
-    {id:'i-rqc', a:'planeacion', b:'siesa', k:'art', tag:'RQC', bend:[0,-1.2,.4], t:'RQC · Requisición', d:'Planeación crea en SIESA la requisición de cada sede y ruta.', c:['Cada 5 min']},
-    {id:'i-oco', a:'compras', b:'siesa', k:'art', tag:'OCO', bend:[0,2.4,-1.2], t:'OCO · Orden de compra', d:'Compras crea en SIESA una orden por proveedor.', c:['Una por proveedor']},
+    {id:'i-rqc', a:'planeacion', b:'siesa', k:'art', tag:'RQC', bend:[0,1.6,0], t:'Planeación → SIESA · RQC', d:'Planeación crea en SIESA la requisición de cada sede y ruta, marcada con un código propio de Vantage.', c:['Cada 5 min']},
+    {id:'i-oco', a:'compras', b:'siesa', k:'art', tag:'OCO', bend:[0,-1.2,0], t:'Compras → SIESA · OCO', d:'Compras crea en SIESA una orden por proveedor.', c:['Una por proveedor']},
+    {id:'i-api', a:'siesa', b:'apisiesa', k:'ven', tag:'SYNC', bend:[0,.5,0], t:'SIESA → API SIESA · Maestros y consecutivos', d:'Cada 6 h baja la copia local de los maestros.\nY cierra el ciclo de cada documento: la RQC o la OCO que salió de Vantage vuelve con el consecutivo que le puso SIESA y su estado.', c:['Regresa a Vantage']},
+    {id:'i-api-pl', a:'apisiesa', b:'planeacion', k:'ven', bend:[0,-.3,0], t:'API SIESA → Planeación', d:'Proyectos para ligar cada sede, existencias por bodega para descontar stock, ítems de aseo, y el consecutivo y el estado de cada RQC.', c:['Una vía']},
+    {id:'i-api-co', a:'apisiesa', b:'compras', k:'ven', bend:[0,-.3,0], t:'API SIESA → Compras', d:'Proveedores (terceros), descuentos, y de cada OCO su consecutivo, estado, impuestos y totales.', c:['Una vía']},
+    {id:'i-api-nu', a:'apisiesa', b:'nutricion', k:'ven', bend:[0,0,0], t:'API SIESA → Nutrición', d:'El catálogo de ítems SIESA para hacer el match de cada alimento ICBF con el producto que se compra.', c:['Una vía']},
   ];
 
   WMSW.FLOWS = [
@@ -833,7 +860,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     empleados: {d:'Base de datos de personal de Talento Humano. Vantage solo la consulta, nunca escribe en ella.\nDe ahí salen los certificados BPM y los carnets, y la usa el bot de WhatsApp para que cada empleado pida su certificado con la cédula.',
       f:[['Acceso','Solo lectura'],['Dueña','Talento Humano'],['La usan','Calidad · bot de WhatsApp · asistentes vía MCP']]},
     resend: {d:'El servicio que despacha los correos automáticos de Vantage desde su propio dominio.\nSi un correo rebota, Vantage se entera, para que el equipo sepa que un proveedor no lo recibió.',
-      f:[['Órdenes de compra','PDF al correo de cada proveedor'],['Logística','Excel de las RQC enviadas'],['Reposiciones','Correo consolidado'],['Remitente','vantagechvs.org']]},
+      f:[['Logística','Excel de las RQC enviadas'],['Reposiciones','Correo consolidado'],['Remitente','vantagechvs.org']]},
     cloudinary: {d:'Guarda en la nube los archivos que se suben a Vantage, fuera del servidor, para que no se pierdan con cada actualización.\nDe ahí se leen al generar los PDF.',
       f:[['Logos','De instituciones, optimizados para PDF'],['Firmas','Para actas y certificados'],['Fotos','Evidencia de las reposiciones']]},
     mcp: {d:'MCP (Model Context Protocol) es un estándar abierto para que los asistentes de IA usen las herramientas de un sistema.\nCon él, Claude, ChatGPT o Grok consultan y operan Vantage en lenguaje natural: menús, costos, compras, conteos, certificados. Las acciones que escriben datos quedan en la auditoría.',
@@ -860,13 +887,13 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   const MORE_OUT_FLOWS = {
     rqc: {d:'Pide a SIESA la salida de alimentos de bodega para cada sede y ruta (víveres o congelados), o una sola requisición consolidada por período.\nSale desde una cola automática. Vantage bloquea el doble envío y marca cada RQC con un código propio para reconocerla cuando vuelve de SIESA.',
       f:[['Frecuencia','La cola se revisa cada 5 min'],['Tiempo','≈ 10 s por RQC'],['Período PAE típico','138 RQC en ≈ 23 min'],['Anulación','Se anula en SIESA; después Vantage permite reenviar']]},
-    oco: {d:'Compras agrupa solicitudes de uno o varios programas, asigna proveedor, precio y descuento, y Vantage crea en SIESA una orden por proveedor.\nSIESA calcula impuestos y totales; Vantage arma el PDF con esos valores y se lo envía al proveedor.',
+    oco: {d:'Compras agrupa solicitudes de uno o varios programas, asigna proveedor, precio y descuento, y Vantage crea en SIESA una orden por proveedor.\nSIESA calcula impuestos y totales y le pone su consecutivo; la sincronización trae ambos de vuelta a Vantage.',
       f:[['Enviadas','968 (a septiembre de 2026)'],['Descuento','Por línea, traído de SIESA al asignar el proveedor'],['Control','Un bloqueo impide enviar dos veces el mismo grupo']]},
     ret: {d:'Lo que vuelve de SIESA: productos, sedes, proveedores, bodegas, existencias y precios, más el número y el estado de cada documento que Vantage creó.\nLas requisiciones llegan paginadas, así que un día completo baja en segundos.',
       f:[['Frecuencia','Cada 6 h, automático'],['Inventario','Foto diaria, se guardan 60 días'],['Estados','Elaboración · aprobado · contabilizado · anulado']]},
     pg: {d:'Cada pantalla de Vantage lee y escribe aquí en tiempo real: lo que una persona guarda, la siguiente ya lo ve.', f:[['Conexión','Dentro de la red de Railway']]},
     emp: {d:'Vantage consulta la base de personal para emitir certificados BPM y carnets con los datos al día de cada empleado.', f:[['Acceso','Solo lectura']]},
-    mail: {d:'Vantage entrega a Resend cada correo que debe salir: órdenes de compra, reportes de RQC y consolidados de reposiciones.', f:[['Formato','Correo con adjuntos PDF o Excel']]},
+    mail: {d:'Vantage entrega a Resend cada correo que debe salir: reportes de RQC y consolidados de reposiciones.', f:[['Formato','Correo con adjuntos PDF o Excel']]},
     cld: {d:'Al subir un logo, una firma o una foto, se guarda en Cloudinary; al generar un PDF, Vantage la lee de allí.'},
     mcpv: {d:'Cada pregunta o acción de un asistente llega a Vantage como una llamada a una de sus 141 herramientas.', f:[['Seguridad','OAuth 2.0']]},
     'w-oc': {d:'SIESA le pasa al WMS las órdenes de compra (las OCO que crea Vantage) y los traslados entre bodegas. El líder del CEDI los carga al módulo de integraciones y los recibe en el muelle.', f:[['Interfaz','DocumentLines OC / RQI'],['Vuelve','Reception Document Ended, también en parciales']]},
@@ -889,7 +916,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Reposiciones','Genera la reposición de faltantes o devoluciones, la manda a compras y emite su PDF.'],
          ['Pedidos de aseo','Aseo mensual por sede según raciones, manipuladoras y días, con Excel y remisión.'],
          ['Raciones extra','Importa y exporta por Excel las raciones de manipuladoras y muestreo.']],
-      f:[['Sedes PAE ligadas a SIESA','185 de 187'],['Envío de RQC','≈ 10 s cada una, por cola en segundo plano'],['Ítems de aseo','202 del catálogo SIESA'],['Entregables','5 tipos de PDF · 4 tipos de Excel'],['Lo consumen','Logística · Calidad · Supervisión · Compras']]},
+      f:[['Sedes PAE ligadas a SIESA','185 de 187'],['Envío de RQC','≈ 10 s cada una, por cola en segundo plano'],['Ítems de aseo','202 del catálogo SIESA'],['Entregables','5 tipos de PDF · 4 tipos de Excel'],['Recibe de','Nutrición · Facturación · Supervisión · Logística · API SIESA'],['Entrega a','Supervisión · Compras · Logística · Calidad · Facturación · SIESA']]},
     nutricion: {d:'Diseña los ciclos de menús de cada programa (PAE, comedores y adulto mayor) con sus preparaciones, ingredientes y gramajes por nivel escolar, y valida que cumplan los requerimientos nutricionales.',
       p:[['Catálogo de alimentos ICBF','Consulta y edición de la tabla de composición; Excel de alimentos con nutrientes faltantes.'],
          ['Menús por modalidad','Los 20 menús del ciclo de cada modalidad, más menús especiales y de contingencia.'],
@@ -902,7 +929,6 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Ciclo de menús','Formato oficial del ciclo por modalidad en PDF y Excel, con firmas de la nutricionista.'],
          ['Exportes nutricionales','Excel de análisis por menú, nivel y modalidad, y Excel de guías de preparación.'],
          ['Tablas de referencia','Recomendaciones diarias, rangos de la minuta patrón y procedimientos de preparación.'],
-         ['Bandeja de recomendaciones','La nutricionista atiende o descarta los ítems que le señala Costos.'],
          ['Firmas por contrato','Dietista, matrícula y firma que salen en los PDF y Excel.']],
       f:[['Menús por ciclo','20 por modalidad'],['Niveles escolares','5 · "general" en comedores y adulto mayor'],['Semáforo','4 estados de adecuación nutricional'],['Salidas','Ciclo en PDF y Excel · análisis y guías en Excel'],['Apoyo','Agente de creación de menús']]},
     compras: {d:'Toma las solicitudes de compra confirmadas por Planeación, las agrupa por proveedor y genera las órdenes de compra (OCO) que se envían a SIESA.',
@@ -911,8 +937,6 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Consolidado por ítem','Lo pendiente por comprar, descontando lo ya ordenado, con los ítems ya comprados marcados.'],
          ['Envío de OCO a SIESA','Una orden por proveedor, con fecha del documento, fecha de entrega por ítem y notas.'],
          ['Seguimiento en SIESA','Trae el consecutivo y el estado de cada OCO: aprobada, contabilizada o anulada.'],
-         ['PDF de la orden','Documento con los datos del comprador para entregar al proveedor.'],
-         ['Correo al proveedor','La orden sale por correo desde Vantage.'],
          ['Decisiones de compra','Cambio de marca, marca adicional o reparto de presentación; se conservan al recalcular.'],
          ['Reversión de decisiones','Al borrar un grupo, ofrece deshacer las decisiones tomadas en él.'],
          ['Histórico de precios','Precios y cantidades reales comprados por proveedor e ítem a lo largo del tiempo.'],
@@ -926,7 +950,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Cobertura de datos','% de ingredientes de cada menú que ya tienen su producto de compra asociado.'],
          ['Semáforo de cobertura','Verde ≥ 90 %, amarillo 60–89 %, rojo < 60 %, con conteo de menús incompletos.']],
       f:[['Tipos de menú','3 (regulares, especiales, contingencia)'],['Niveles','Los 5 niveles PAE'],['Fuente','Análisis de Nutrición + match con Compras'],['Lo usan','Costos · Administración · Nutrición']]},
-    supervision: {d:'El módulo de campo: los supervisores descuentan de cada requisición lo que su sede ya tiene y el coordinador revisa, aprueba y envía.',
+    supervision: {d:'El módulo de campo. Recibe de Planeación la requisición calculada de cada sede; los supervisores descuentan lo que la sede ya tiene y el coordinador revisa, aprueba y envía.\nLe aporta a Planeación las disminuciones, y a Compras la solicitud de fruver.',
       p:[['Calendario propio','Cada persona ve solo los períodos y sedes que le corresponden.'],
          ['Disminuciones por sede','El supervisor descuenta línea por línea lo que no hay que despachar.'],
          ['Revisión del coordinador','Revisa los descuentos de todas las sedes de su programa.'],
@@ -972,15 +996,17 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Calendario de compras','Consulta y exporta el SCO y el consolidado por sede de varios programas.']],
       f:[['Canales','Bot de WhatsApp y web'],['Enlace por WhatsApp','Vigente 24 h'],['Formato','PDF horizontal carta · carnets 3 por hoja'],['Fuente de las guías','Despachos de congelados de Planeación']]},
     traslados: MORE_OUT.traslados,
+    apisiesa: {d:'Es la copia local de SIESA dentro de Vantage: nadie consulta SIESA en vivo. SIESA suministra los maestros y Vantage construye con ellos: sedes, productos, proveedores y bodegas salen de aquí.\nTambién cierra el ciclo de cada documento: Vantage crea la RQC o la OCO en SIESA, SIESA le asigna su consecutivo y la sincronización lo trae de vuelta con su estado.',
+      p:[['Ítems y portafolio','Productos SIESA para el match de Nutrición y para los pedidos de aseo.'],
+         ['Proyectos','Sedes y comedores; cada sede de Vantage se liga a su proyecto.'],
+         ['Terceros y solicitantes','Proveedores de las OCO y solicitantes de las RQC.'],
+         ['Existencias por bodega','8 bodegas, con foto diaria, para descontar stock al calcular compras.'],
+         ['Requisiciones','Vuelve cada RQC con su consecutivo SIESA y su estado.'],
+         ['Documentos de compra','Vuelve cada OCO con su consecutivo, estado, impuestos y totales; también se sincroniza justo después de cada envío.'],
+         ['Maestros de documento','Bodegas, centros de costo y de operación, unidades de negocio, conceptos, motivos, tipos de documento, condiciones de pago, ubicaciones e instalaciones.']],
+      f:[['Catálogos','26'],['Frecuencia','Proceso cada 6 h; cada catálogo a su ritmo'],['Ciclo de un documento','Vantage crea → SIESA numera → la sync lo trae'],['Estados','Elaboración · aprobado · contabilizado · anulado'],['Lo usan','Planeación · Compras · Nutrición']]},
   };
   const MORE_IN_FLOWS = {
-    'i-menu': {d:'Los menús aprobados, con sus gramos por nivel, son la base del cálculo de compras de cada período.'},
-    'i-matriz': {d:'Cada menú queda registrado en la matriz nutricional del programa.'},
-    'i-foc': {d:'Los listados de focalización definen cuántas raciones se planean por sede, grado y modalidad. Al cierre, Facturación cobra lo que se despachó.'},
-    'i-sup': {d:'Lo que la sede ya tiene se descuenta antes de enviar la requisición, sede por sede.'},
-    'i-sc': {d:'Planeación confirma ítem por ítem qué comprar y Compras arma las órdenes por proveedor.'},
-    'i-log': {d:'Cuando Planeación libera el período, Logística descarga remisiones, actas, portadas por ruta y consolidados.'},
-    'i-cal': {d:'Calidad consulta el calendario de compras y genera las guías de transporte de congelados a partir de los despachos.'},
     'i-rqc': MORE_OUT_FLOWS.rqc, 'i-oco': MORE_OUT_FLOWS.oco,
   };
   Object.entries(MORE_OUT).forEach(([id, m]) => Object.assign(OUT.N[id].card, m));
@@ -1012,8 +1038,18 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       const hit = new THREE.Mesh(new THREE.TubeGeometry(curve, 32, .32, 6, false), new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}));
       hit.userData = {type:'flow', id:f.id}; Wd.group.add(hit); Wd.picks.push(hit);
       f.curve = curve; f.mat = tubeMat; f.v = 1; f.parts = [];
+      // Flechas: punta en el destino, y también en el origen si va y vuelve (la visión muestra relaciones, sin flechas, salvo lo que llega a Costos)
+      f.heads = [];
+      if (Wd !== VIS || f.k === 'pres') [1, 0].forEach(end => {
+        if (!end && !TWO_WAY[f.k]) return;
+        const t = end ? .97 : .03, tan = curve.getTangentAt(t);
+        if (!end) tan.negate();
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(Math.max(.22, kk.rad * 3.4), Math.max(.55, kk.rad * 8.5), 14), new THREE.MeshBasicMaterial({color:kk.col, transparent:true, depthWrite:false}));
+        cone.position.copy(curve.getPointAt(t)); cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), tan);
+        Wd.group.add(cone); f.heads.push(cone);
+      });
       for (let i = 0; i < kk.n; i++) {
-        const back = (f.k === 'bi' || f.k === 'hoy') && i % 2 === 1;
+        const back = TWO_WAY[f.k] && i % 2 === 1;
         let obj, mat;
         if (f.tag) {
           const tk = f.tag + (NAVY_K[f.k] ? '-n' : '');
@@ -1021,8 +1057,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
           mat = new THREE.SpriteMaterial({map:texCache[tk], transparent:true, depthWrite:false});
           obj = new THREE.Sprite(mat); obj.scale.set(1.05, .44, 1);
         } else {
-          mat = new THREE.MeshBasicMaterial({color: f.k === 'wmsr' ? BLUE_L : NAVY_K[f.k] ? NAVY : f.k === 'comp' ? 0x1fa59a : f.k === 'fut' ? 0xE8C547 : (back || f.k === 'ven' || f.k === 'parc') ? LIGHT : DARK, transparent:true});
-          obj = new THREE.Mesh(partGeo, mat); obj.scale.setScalar(f.k === 'int' || f.k === 'wint' ? .12 : .15);
+          mat = new THREE.MeshBasicMaterial({color: f.k === 'wmsr' ? BLUE_L : NAVY_K[f.k] ? NAVY : f.k === 'comp' ? 0x1fa59a : f.k === 'fut' || f.k === 'pres' ? 0xE8C547 : (back || f.k === 'ven' || f.k === 'parc') ? LIGHT : DARK, transparent:true});
+          obj = new THREE.Mesh(partGeo, mat); obj.scale.setScalar(f.k === 'int' || f.k === 'intb' || f.k === 'wint' ? .12 : .15);
         }
         Wd.group.add(obj);
         f.parts.push({obj, mat, t: i / kk.n + Math.random() * .05, back});
@@ -1031,7 +1067,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   }
 
   // ---------- Cámara ----------
-  const HOME = new THREE.Vector3(0,2,0), HOME_IN = new THREE.Vector3(1,0,0), HOME_WMS = new THREE.Vector3(-.5,0,0);
+  const HOME = new THREE.Vector3(0,2,0), HOME_IN = new THREE.Vector3(1,.6,0), HOME_WMS = new THREE.Vector3(-.5,0,0);
   const cam = {target:HOME.clone(), want:HOME.clone(), r:32, wantR:32, theta:0, phi:1.2};
   let idleUntil = 0;
   const narrow = () => innerWidth / innerHeight < .8;
@@ -1378,6 +1414,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
       const hl = (sel && sel.type === 'flow' && sel.id === f.id) || (hovered && hovered.type === 'flow' && hovered.id === f.id);
       const rvF = Math.min(rev(W.N[f.a]), rev(W.N[f.b]));
       f.mat.opacity = rvF * kk.op * (.1 + .9 * f.v) * (f.k === 'wip' || f.k === 'fut' ? .55 + .45 * Math.sin(clock * (f.k === 'fut' ? 1.6 : 3)) : 1) + (hl ? .35 : 0);
+      f.heads.forEach(h => { h.material.opacity = Math.min(1, f.mat.opacity * 2.4); h.visible = f.v > .03; });
       f.parts.forEach(p => {
         p.t += kk.sp * sp * dt;
         if (p.t >= 1) { p.t -= 1; if (on) (p.back ? W.N[f.a] : W.N[f.b]).flash = 1; }

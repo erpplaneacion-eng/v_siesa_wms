@@ -456,13 +456,13 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     ['costos', arc(236, 1), .7, areaCoin('costos'), 'Costos', '',
       {k:'Módulo', t:'Costos', d:'Aquí queda registrada la matriz nutricional de cada programa.', c:['Matriz nutricional']}],
     ['supervision', arc(288, .6), .7, areaCoin('supervision'), 'Supervisión', '',
-      {k:'Módulo', t:'Supervisión', d:'Los supervisores ajustan en campo lo que cada sede ya tiene; el coordinador aprueba y envía.', c:['Disminuciones']}],
+      {k:'Módulo · Tócalo para entrar', t:'Supervisión', d:'Los supervisores ajustan en campo lo que cada sede ya tiene; el coordinador aprueba y envía.', c:['Disminuciones']}],
     ['facturacion', arc(140, -1), .75, areaCoin('facturacion'), 'Facturación', '',
       {k:'Módulo', t:'Facturación', d:'Carga la focalización y calcula las raciones a facturar según lo que realmente se despachó.', c:['Focalización','Raciones']}],
     ['logistica', arc(172, 1), .7, areaCoin('logistica'), 'Logística', '',
       {k:'Módulo', t:'Logística', d:'Calendario de despachos, documentos de entrega, conteo físico y reposiciones.', c:['Entregas']}],
     ['calidad', arc(204, -1), .7, areaCoin('calidad'), 'Calidad', '',
-      {k:'Módulo', t:'Calidad', d:'Certificados BPM, carnets y guías de transporte de congelados.', c:['BPM','Congelados']}],
+      {k:'Módulo · Tócalo para entrar', t:'Calidad', d:'Certificados BPM, carnets y guías de transporte de congelados.', c:['BPM','Congelados']}],
     ['traslados', [8.8,-4.4,1.2], .8, () => coin(trasladoPaint, YELLOW), 'Traslados', 'amarillo',
       {k:'En construcción', t:'Traslados entre bodegas', d:'Mover mercancía entre bodegas dentro de SIESA, por ejemplo de Yumbo a Buga o de un operador a la bodega central. SIESA ya publicó los servicios; Vantage los conectará desde Compras.', c:['RQT · Requisición de transferencia','TTS → TTE · Salida y entrada','En construcción']}],
     ['apisiesa', [4.4,-1.5,.6], .85, () => coin(apiPaint, BLUE), 'API SIESA · maestros', 'azul',
@@ -525,6 +525,86 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     ['siesa', [-14,0,-.5], 1.15, () => coin(imgPaint(SIESA_PNG, 430), BLUE), 'SIESA', 'azul',
       {k:'Fuera del WMS', t:'SIESA', d:'Le pasa al WMS lo que hay que recibir y despachar, y recibe de vuelta las entradas, los consumos y los ajustes que el WMS confirma. Vantage escribe en SIESA; el WMS lee de SIESA.',
        c:['OC · RQI · Maestros','Entradas · Consumos · Ajustes']}],
+  ]);
+
+  // ---------- Dentro de Calidad y de Supervisión (se entra desde el interior de Vantage) ----------
+  // Verde oscuro: lo que se hizo en septiembre de 2026 · verde claro: lo que ya existía
+  const CALW = makeWorld(), SUPW = makeWorld();
+  CALW.heart = 'calidad'; SUPW.heart = 'supervision';
+  [CALW, SUPW].forEach(Wd => { scene.add(Wd.group); Wd.group.visible = false; });
+  const HOME_SUB = new THREE.Vector3(1,-.5,0);
+  addNodes(CALW, [
+    ['calidad', [0,0,0], 1.25, areaCoin('calidad'), 'Calidad', 'big',
+      {k:'Módulo de Vantage', t:'Calidad', d:'Aseguramiento de la calidad dentro de Vantage. En septiembre de 2026 sumó las guías de transporte de congelados, que antes se armaban en una herramienta aparte con un Excel subido a mano.\nAdemás emite los certificados BPM y los carnets del personal, y consulta el calendario de compras.',
+       c:['Guías de congelados · sep-2026','Calendario de compras','Certificados BPM'],
+       f:[['Tarjetas','Certificados · Calendario de compras · Guías de transporte'],['Recibe de','Planeación · Base de empleados'],['Escribe en SIESA','No']]}],
+    ['guias', [4.6,3.2,.5], .8, wNode(DARK), 'Guías de congelados', '',
+      {k:'Nuevo · septiembre 2026', t:'Guías de transporte de congelados', d:'Las guías que acompañan cada ruta de congelados ya no se arman a mano: salen de las requisiciones de congelados que Planeación calculó para el período.\nSe eligen los períodos, los tipos de inventario y los datos del transporte, y Vantage arma un PDF por ruta y un Excel de despacho.',
+       p:[['Por programa','Un programa y un período.'],
+          ['Por mes o rango','Trae los períodos de todos los programas que caen en el rango, agrupados por programa.'],
+          ['Tipos de inventario','Se marcan los que van (carnes, lácteos, congelados). Arranca sin ninguno marcado.'],
+          ['Columnas por producto','Una por cada ítem que de verdad salió en la ruta, no una lista fija.'],
+          ['Datos del transporte','Lote por ítem, conductor, placa, dictamen y quién elabora.'],
+          ['Días de consumo','Enumerados día por día desde el calendario del período.']],
+       f:[['Fuente','Requisiciones de congelados de Planeación'],['Cantidad','La necesidad completa de cada punto, no lo pedido a SIESA'],['Programas','PAE y comedores'],['Aseo PAE','Va en el mismo camión, pero no sale en la guía']]}],
+    ['g-pdf', [9.2,5.6,-.5], .55, wNode(DARK), 'PDF por ruta', 'sm',
+      {k:'Guías · salida', t:'PDF por ruta', d:'Un PDF por cada ruta de congelados, con cada punto de entrega, su dirección, su cobertura y la cantidad de cada producto. Se descargan juntos en un ZIP.\nUn PDF nunca mezcla programas: cada uno lleva el programa, la empresa y las fechas de su contrato.', c:['ZIP','Firma de quien supervisa']}],
+    ['g-excel', [9.6,1.2,.5], .55, wNode(DARK), 'Excel de despacho', 'sm',
+      {k:'Guías · salida', t:'Excel de despacho', d:'Lo despachado en seis cortes, para revisar y reportar.',
+       f:[['Resumen','Períodos, rutas, puntos, beneficiarios y totales'],['Datos procesados','Una fila por punto de entrega'],['Por ruta','Puntos, beneficiarios y totales'],['Por sede','Cobertura y cantidades acumuladas'],['Por ítem','Total, rutas y sedes distintas'],['Por período','Rutas, puntos y totales']]}],
+    ['camion', [14,4.2,0], .7, wNode(NAVY), 'Ruta de congelados', 'sm wmsl',
+      {k:'Fuera de Vantage', t:'Ruta de congelados', d:'La guía viaja con el conductor en el camión de congelados y documenta lo que sale hacia cada punto de entrega.', c:['Sedes PAE','Comedores']}],
+    ['calendario', [-5,4.5,-.6], .65, wNode(DARK), 'Calendario de compras', '',
+      {k:'Nuevo · finales de agosto 2026', t:'Calendario de compras', d:'El calendario de períodos de Planeación en modo consulta: Calidad ve qué se va a comprar y entregar, sin poder cambiar nada.',
+       p:[['Exportar SCO','Excel de la necesidad del programa elegido, con una hoja por modalidad.'],['Consolidado por sede','Matriz ítem × sede de varios programas a la vez.']],
+       f:[['Acceso','Solo lectura'],['Consolidado','Solo PAE']]}],
+    ['certificados', [-4,-3.8,.6], .62, wNode(LIGHT), 'Certificados BPM', '',
+      {k:'Desde antes', t:'Certificados BPM', d:'Certificados de buenas prácticas de manufactura del personal, con los datos de la base de empleados. Uno por uno o por lote de cédulas, sin duplicar los que ya existen, y también para personas externas.', c:['Individual','Por lote','Externos']}],
+    ['carnets', [1.5,-6,-.4], .5, wNode(LIGHT), 'Carnets', 'sm',
+      {k:'Desde antes', t:'Carnets', d:'Los certificados en formato carnet, 3 por hoja carta con líneas de corte.', c:['PDF']}],
+    ['whatsapp', [-6.5,-7.5,.4], .55, wNode(LIGHT), 'Bot de WhatsApp', 'sm',
+      {k:'Desde antes', t:'Bot de WhatsApp', d:'El empleado escribe su cédula y recibe el enlace a su certificado en PDF.', c:['Enlace válido 24 h']}],
+    ['empleados', [-11,-4.5,0], .85, database, 'Base de empleados', '',
+      {k:'Fuera de Vantage', t:'Base de empleados', d:'Base de personal de Talento Humano. Calidad solo la consulta.', c:['Solo lectura']}],
+    ['planeacion', [-12,2,0], .9, areaCoin('planeacion'), 'Planeación', '',
+      {k:'Fuera de Calidad', t:'Planeación', d:'Le entrega a Calidad los despachos de congelados de cada período y el calendario de compras.', c:['Despachos','Períodos']}],
+  ]);
+  addNodes(SUPW, [
+    ['supervision', [0,0,0], 1.25, areaCoin('supervision'), 'Supervisión', 'big',
+      {k:'Módulo de Vantage · desde el 9 de septiembre de 2026', t:'Supervisión', d:'El módulo de campo. Los supervisores descuentan de la requisición lo que su sede ya tiene; el coordinador revisa, aprueba, envía las RQC y manda a Compras la solicitud de fruver.\nTambién genera los listados de asistencia prediligenciados de sus sedes.',
+       c:['Disminuciones','Listados prediligenciados'],
+       p:[['Supervisor','Descuenta en sus sedes asignadas.'],['Coordinador','Todas las sedes de sus programas: descuenta, envía las RQC y manda la solicitud de fruver.'],['Administración','Ve todo el módulo.']],
+       f:[['Personas','15 en la carga inicial'],['Ámbito','Cada uno ve solo sus sedes o sus programas'],['Convive con Planeación','Gana el primero que actúa; nadie envía dos veces']]}],
+    ['disminuciones', [-5,3.6,.6], .75, wNode(DARK), 'Disminuciones', '',
+      {k:'Nuevo · septiembre 2026', t:'Disminuciones por sede', d:'Antes de enviar, el supervisor revisa la requisición calculada de cada sede y descuenta línea por línea lo que la sede ya tiene y no hay que despachar.\nSe puede descontar cualquier producto. Solo en fruver el descuento baja también la compra, porque se compra después del despacho; en lo demás, que ya está comprado, solo evita despachar.',
+       c:['Línea por línea','Cualquier producto'],
+       f:[['Baja la compra','Solo fruver'],['Se ve en Planeación','Descontado y restado de la compra, en la solicitud y en el Exportar SCO'],['Formato Entrega','No descuenta: declara la necesidad del período']]}],
+    ['revision', [4.2,4.4,-.5], .7, wNode(DARK), 'Aprobación', '',
+      {k:'Nuevo · septiembre 2026', t:'Aprobación del coordinador', d:'El coordinador ve las disminuciones de todas las sedes de sus programas y aprueba cuando quiera, sin esperar un "terminé" del supervisor. Envía una RQC a SIESA o pone en cola todas las de sus sedes.',
+       c:['Una RQC','Enviar todas → cola'],
+       f:[['Enviar todas','Se encola: sale sola cada 5 min, ≈ 10 s por RQC'],['Doble envío','Bloqueado, también frente a Planeación']]}],
+    ['fruver', [4.8,-2.4,.6], .7, wNode(DARK), 'Solicitud de fruver', '',
+      {k:'Nuevo · septiembre 2026', t:'Solicitud de compra de fruver', d:'Con los descuentos ya cargados, el coordinador confirma la solicitud de frutas y verduras y la manda a Compras. Antes de aprobar puede contrastar, ítem por ítem, la necesidad original, lo descontado y lo que se va a comprar.\nSi se equivocó, la revierte mientras Compras no haya comprado.',
+       p:[['Ver líneas de fruver','Necesidad · descontado · a comprar, y cuántas sedes descontaron.'],['Confirmar y mandar a Compras','Solo fruver: las demás solicitudes siguen siendo de Planeación.'],['Revertir','Mientras no haya una orden de compra vigente.']],
+       f:[['La hace','El coordinador'],['La recibe','Compras, para la orden por proveedor']]}],
+    ['prediligenciada', [0,-6.8,.4], .7, wNode(DARK), 'Listados prediligenciados', '',
+      {k:'Nuevo · septiembre 2026', t:'Listados prediligenciados', d:'El formato de asistencia de cada sede con las marcas por día ya puestas, para que el supervisor lo lleve a campo. Usa el mismo generador de Facturación, acotado a las sedes de quien lo pide.',
+       p:[['Programa, sede y mes','Con la focalización, el complemento y el conteo de estudiantes por nivel.'],
+          ['Días a marcar','Calendario para repartir las marcas por día y nivel.'],
+          ['Portada con las X por día','Hoja inicial con la tabla día × nivel y el total del mes. Solo en Supervisión.'],
+          ['Industrializado','Si toda la sede es industrializada, AM y PM salen en un solo listado.']],
+       f:[['Motor del PDF','El de Facturación'],['Ámbito','Solo sedes propias, validado antes de generar']]}],
+    ['maestro', [-5,-3.5,-.4], .55, wNode(DARK), 'Supervisores', 'sm',
+      {k:'Nuevo · septiembre 2026', t:'Supervisores y coordinadores', d:'La ficha de cada persona: cargo, programas y usuario de ingreso. Las sedes no se asignan aquí sino en Facturación, donde ya estaban, así el listado de asistencia y el descuento siempre nombran al mismo supervisor.',
+       c:['15 personas','Varios programas por persona'], f:[['Dónde se edita','Principal → Supervisores'],['Sedes','Desde Facturación']]}],
+    ['planeacion', [-12,2,0], .9, areaCoin('planeacion'), 'Planeación', '',
+      {k:'Fuera de Supervisión', t:'Planeación', d:'Calcula la requisición de cada sede y recibe de vuelta las disminuciones.', c:['Requisición calculada']}],
+    ['facturacion', [-11.5,-5,0], .85, areaCoin('facturacion'), 'Facturación', '',
+      {k:'Fuera de Supervisión', t:'Facturación', d:'Dice qué sedes son de cada supervisor y genera el PDF de asistencia que Supervisión pide para sus sedes.', c:['Sedes asignadas','Asistencia']}],
+    ['compras', [11.5,-3.5,0], .85, areaCoin('compras'), 'Compras', '',
+      {k:'Fuera de Supervisión', t:'Compras', d:'Recibe la solicitud de fruver y arma la orden de compra por proveedor.', c:['OCO']}],
+    ['siesa', [12,4.5,-.5], 1.05, () => coin(imgPaint(SIESA_PNG, 430), BLUE), 'SIESA', 'azul',
+      {k:'Fuera de Vantage', t:'SIESA', d:'Recibe las RQC que envía el coordinador, por la misma cola de Planeación.', c:['RQC']}],
   ]);
 
   // ---------- Visión de futuro: cada área es un átomo con su propio mundo (organigrama 2026) ----------
@@ -848,6 +928,32 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     {id:'i-w10', a:'cedi', b:'kits', k:'wint', t:'Armado de kits', d:'Los componentes salen de las zonas hacia la ubicación de kits.', c:[]},
   ];
 
+  CALW.FLOWS = [
+    {id:'c-guia', a:'planeacion', b:'guias', k:'int', bend:[0,1,1], t:'Planeación → Guías · Despachos de congelados', d:'Las requisiciones de congelados del período, con cada punto de entrega y la cantidad de cada producto.', c:['Una vía']},
+    {id:'c-cal', a:'planeacion', b:'calendario', k:'int', t:'Planeación → Calendario de compras', d:'Los períodos de compra y la necesidad de cada uno, solo para consulta.', c:['Solo lectura']},
+    {id:'c-t1', a:'calidad', b:'guias', k:'int', t:'Tarjeta Guías de transporte', d:'Una de las tres tarjetas de Calidad.', c:[]},
+    {id:'c-t2', a:'calidad', b:'calendario', k:'int', t:'Tarjeta Calendario de compras', d:'Una de las tres tarjetas de Calidad.', c:[]},
+    {id:'c-t3', a:'calidad', b:'certificados', k:'int', t:'Tarjeta Certificados', d:'Una de las tres tarjetas de Calidad.', c:[]},
+    {id:'c-pdf', a:'guias', b:'g-pdf', k:'int', t:'Guías → PDF por ruta', d:'Un PDF por ruta, descargados juntos en un ZIP.', c:[]},
+    {id:'c-xls', a:'guias', b:'g-excel', k:'int', t:'Guías → Excel de despacho', d:'El mismo dato en seis hojas.', c:[]},
+    {id:'c-cam', a:'g-pdf', b:'camion', k:'art', t:'La guía sale con el camión', d:'La guía impresa acompaña la ruta de congelados hasta cada punto de entrega.', c:[]},
+    {id:'c-emp', a:'empleados', b:'certificados', k:'ven', t:'Base de empleados → Certificados', d:'Los datos de cada empleado para su certificado. Calidad solo consulta.', c:['Solo lectura']},
+    {id:'c-wa', a:'whatsapp', b:'certificados', k:'bi', t:'WhatsApp ↔ Certificados', d:'Llega la cédula y vuelve el enlace al certificado.', c:['Va y vuelve']},
+    {id:'c-car', a:'certificados', b:'carnets', k:'int', t:'Certificados → Carnets', d:'Los certificados elegidos se imprimen como carnets.', c:[]},
+  ];
+  SUPW.FLOWS = [
+    {id:'s-req', a:'planeacion', b:'disminuciones', k:'intb', t:'Planeación ↔ Supervisión', d:'Planeación → Supervisión: la requisición calculada de cada sede, por período.\nSupervisión → Planeación: las disminuciones, que Planeación ve como "descontado" y, en fruver, "restado de la compra".', c:['Va y vuelve']},
+    {id:'s-amb1', a:'supervision', b:'disminuciones', k:'int', t:'Solo sus sedes', d:'Cada persona descuenta únicamente en las sedes de su ámbito.', c:[]},
+    {id:'s-rev', a:'disminuciones', b:'revision', k:'int', t:'Descuentos para aprobar', d:'El coordinador revisa lo que cargaron los supervisores de sus programas.', c:[]},
+    {id:'s-rqc', a:'revision', b:'siesa', k:'art', tag:'RQC', bend:[0,1,0], t:'Coordinador → SIESA · RQC', d:'Las RQC de sus sedes, ya descontadas, por la misma cola de Planeación.', c:['Cada 5 min']},
+    {id:'s-fru', a:'disminuciones', b:'fruver', k:'int', bend:[0,0,2.5], t:'El descuento de fruver baja la compra', d:'Lo descontado en frutas y verduras todavía no se ha comprado, así que se pide menos.', c:[]},
+    {id:'s-sc', a:'fruver', b:'compras', k:'int', tag:'SC', t:'Supervisión → Compras · Solicitud de fruver', d:'El coordinador confirma la solicitud de frutas y verduras y la manda a Compras.', c:['Una vía']},
+    {id:'s-sedes', a:'facturacion', b:'maestro', k:'int', t:'Facturación → Supervisores · Sedes', d:'Las sedes de cada supervisor se asignan en Facturación, donde ya estaban.', c:[]},
+    {id:'s-amb2', a:'maestro', b:'supervision', k:'int', t:'Ámbito de cada persona', d:'Con la ficha y sus sedes, Vantage decide qué ve y qué puede hacer cada quien.', c:[]},
+    {id:'s-pdf', a:'facturacion', b:'prediligenciada', k:'int', t:'Facturación → Listados · Motor del PDF', d:'La focalización y el generador de asistencia de Facturación, acotados a las sedes propias.', c:[]},
+    {id:'s-amb3', a:'supervision', b:'prediligenciada', k:'int', t:'Solo sus sedes', d:'El listado solo se genera para sedes del ámbito de quien lo pide.', c:[]},
+  ];
+
   // ---------- Tarjetas ampliadas del presente (mapa) y del interior de Vantage ----------
   // d: descripción (\n separa párrafos) · f: datos clave [etiqueta, valor]
   const MORE_OUT = {
@@ -950,16 +1056,6 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Cobertura de datos','% de ingredientes de cada menú que ya tienen su producto de compra asociado.'],
          ['Semáforo de cobertura','Verde ≥ 90 %, amarillo 60–89 %, rojo < 60 %, con conteo de menús incompletos.']],
       f:[['Tipos de menú','3 (regulares, especiales, contingencia)'],['Niveles','Los 5 niveles PAE'],['Fuente','Análisis de Nutrición + match con Compras'],['Lo usan','Costos · Administración · Nutrición']]},
-    supervision: {d:'El módulo de campo. Recibe de Planeación la requisición calculada de cada sede; los supervisores descuentan lo que la sede ya tiene y el coordinador revisa, aprueba y envía.\nLe aporta a Planeación las disminuciones, y a Compras la solicitud de fruver.',
-      p:[['Calendario propio','Cada persona ve solo los períodos y sedes que le corresponden.'],
-         ['Disminuciones por sede','El supervisor descuenta línea por línea lo que no hay que despachar.'],
-         ['Revisión del coordinador','Revisa los descuentos de todas las sedes de su programa.'],
-         ['Envío de RQC a SIESA','El coordinador envía una RQC o pone en cola todas las de sus sedes.'],
-         ['Compra de fruver','El coordinador confirma la solicitud de frutas y verduras y la manda a Compras.'],
-         ['Contraste antes de aprobar','"Ver líneas de fruver" compara lo calculado con lo descontado.'],
-         ['Reversión de fruver','Se puede deshacer mientras Compras no haya comprado.'],
-         ['Asistencia prediligenciada','PDF de asistencia con las marcas por día ya puestas, para sus sedes.']],
-      f:[['Personas','15 en la carga inicial; Yumbo hasta 5 programas por persona'],['Perfiles','Supervisor · Coordinador · Administración'],['Efecto','El descuento baja lo que se le compra al proveedor']]},
     facturacion: {d:'Procesa los listados de focalización (estudiantes por sede y grado) que entregan las entidades territoriales, genera los formatos de asistencia y calcula las raciones a facturar.',
       p:[['Carga de focalización','Importa el Excel de la entidad en dos pasos, vista previa y guardado, y reconoce las sedes.'],
          ['Plantillas de carga','Excel descargable con las columnas que exige cada formato.'],
@@ -985,16 +1081,6 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
          ['Salidas de reposiciones','Excel, ZIP de PDF liberados y correo consolidado de las aprobadas.'],
          ['Períodos liberados','Solo ve lo que Planeación ya liberó para despacho.']],
       f:[['Secciones','Calendario · Conteo físico · Portadas · Reposiciones'],['Circuito de reposición','Logística solicita → Planeación compra → Logística entrega'],['Correo consolidado','Una fila por reposición; más de 50 por envío']]},
-    calidad: {d:'Genera los certificados BPM del personal del programa y las guías de transporte de congelados, y consulta el calendario de compras.',
-      p:[['Certificado por WhatsApp','El empleado envía su cédula y recibe el enlace a su certificado en PDF.'],
-         ['Generación masiva','Certificados para una lista de cédulas, sin duplicar los que ya existen.'],
-         ['Carnets en PDF','3 por hoja carta, con líneas de corte.'],
-         ['Personas externas','Certificados manuales para quien no está en la base de empleados.'],
-         ['Listado de certificados','Consulta y nueva descarga de los ya emitidos.'],
-         ['Guías de congelados','PDF de las guías por ruta y punto, armadas desde los despachos.'],
-         ['Excel de congelados','6 hojas: resumen, datos, por ruta, por sede, por ítem y por período.'],
-         ['Calendario de compras','Consulta y exporta el SCO y el consolidado por sede de varios programas.']],
-      f:[['Canales','Bot de WhatsApp y web'],['Enlace por WhatsApp','Vigente 24 h'],['Formato','PDF horizontal carta · carnets 3 por hoja'],['Fuente de las guías','Despachos de congelados de Planeación']]},
     traslados: MORE_OUT.traslados,
     apisiesa: {d:'Es la copia local de SIESA dentro de Vantage: nadie consulta SIESA en vivo. SIESA suministra los maestros y Vantage construye con ellos: sedes, productos, proveedores y bodegas salen de aquí.\nTambién cierra el ciclo de cada documento: Vantage crea la RQC o la OCO en SIESA, SIESA le asigna su consecutivo y la sincronización lo trae de vuelta con su estado.',
       p:[['Ítems y portafolio','Productos SIESA para el match de Nutrición y para los pedidos de aseo.'],
@@ -1200,7 +1286,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     return Math.max(ex / tanH, ey / TAN_V) * 1.06;
   }
   const fit = (Wd, h, R) => innerWidth / innerHeight < 1 ? [h, Math.max(R, fitR(Wd, h))] : [h, R];
-  const homeOfBase = Wd => Wd === OUT ? [HOME, defaultR()] : Wd === IN ? [HOME_IN, insideR()] : Wd === VIS ? [HOME_VIS, visionR()] : Wd === WMSW ? [HOME_WMS, wmsR()] : [HOME_AREA, areaR()];
+  const homeOfBase = Wd => Wd === OUT ? [HOME, defaultR()] : Wd === IN ? [HOME_IN, insideR()] : Wd === VIS ? [HOME_VIS, visionR()] : Wd === WMSW ? [HOME_WMS, wmsR()] : Wd === CALW || Wd === SUPW ? [HOME_SUB, wmsR()] : [HOME_AREA, areaR()];
   const homeOf = Wd => { const [h, R] = homeOfBase(Wd); return fit(Wd, h, R); };
   // Achica y sube el encuadre de la visión para que ninguna órbita quede debajo de su barra inferior
   let viewOff = -1;
@@ -1220,14 +1306,14 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     const enVision = W === VIS || !!W.area;
     $('h1').textContent = enVision ? 'Transformación digital CHVS' : 'Circulación Vantage, SIESA y WMS';
     $('.sub .hint').textContent = enVision ? 'Ordenar → Conectar → Anticipar · ' : 'Arrastra para girar · toca para ver · ';
-    $('.leyenda').hidden = W !== OUT && W !== IN && W !== WMSW;
-    const inside = W === IN || W === WMSW || !!W.area;
+    $('.leyenda').hidden = W !== OUT && W !== IN && W !== WMSW && W !== CALW && W !== SUPW;
+    const inside = W === IN || W === WMSW || W === CALW || W === SUPW || !!W.area;
     $('#dentro').hidden = !inside;
     if (inside) {
-      $('#dentroT').textContent = W === WMSW ? 'Dentro del WMS' : 'Dentro de ' + (W === IN ? 'Vantage' : AREAS[W.area].name);
-      $('#dentroS').textContent = W === IN ? 'Toca un módulo para verlo' : W === WMSW ? 'Toca un proceso, una zona o una conexión' : 'Toca un proceso para verlo';
+      $('#dentroT').textContent = W === WMSW ? 'Dentro del WMS' : 'Dentro de ' + (W === IN ? 'Vantage' : W === CALW ? 'Calidad' : W === SUPW ? 'Supervisión' : AREAS[W.area].name);
+      $('#dentroS').textContent = W === IN ? 'Toca un módulo para verlo' : W === WMSW ? 'Toca un proceso, una zona o una conexión' : W === CALW || W === SUPW ? 'Toca un proceso o una conexión' : 'Toca un proceso para verlo';
       const prev = back[back.length - 1];
-      $('#salir').textContent = prev && prev.W === VIS ? '← Volver a la visión' : '← Volver al mapa';
+      $('#salir').textContent = prev && prev.W === VIS ? '← Volver a la visión' : prev && prev.W === IN ? '← Volver a Vantage' : '← Volver al mapa';
     }
     requestAnimationFrame(() => updateViewOffset());
   }
@@ -1280,6 +1366,8 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   function worldOf(Wd, id){
     if (Wd === OUT && id === 'vantage') return IN;
     if (Wd === OUT && id === 'wms') return WMSW;
+    if (Wd === IN && id === 'calidad') return CALW;
+    if (Wd === IN && id === 'supervision') return SUPW;
     if (Wd === VIS && id === 'vantage') return IN;
     if (Wd === VIS && id === 'wms') return WMSW;
     if (Wd === VIS && AREAS[id]) return areaWorld(id);
@@ -1309,7 +1397,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
     }
     return null;
   }
-  const enterable = (Wd, id) => ((Wd === OUT || Wd === VIS) && id === 'vantage') || ((Wd === OUT || Wd === VIS) && id === 'wms') || (Wd === VIS && !!AREAS[id]);
+  const enterable = (Wd, id) => (Wd === IN && (id === 'calidad' || id === 'supervision')) || ((Wd === OUT || Wd === VIS) && id === 'vantage') || ((Wd === OUT || Wd === VIS) && id === 'wms') || (Wd === VIS && !!AREAS[id]);
   const titleOf = u => u.type === 'node' ? (enterable(W, u.id) ? 'Entrar a ' + W.N[u.id].card.t : W.N[u.id].card.t) : W.FLOWS.find(f => f.id === u.id).t;
   const touches = new Map(); let pinch = 0, pinched = false, pinchMid = null;
   const _n = new THREE.Vector3(), _hit = new THREE.Vector3(), _plane = new THREE.Plane(), _ax = new THREE.Vector3(), _ay = new THREE.Vector3();
@@ -1461,7 +1549,7 @@ button:focus-visible{outline:3px solid var(--verde-claro);outline-offset:2px}
   }
 
   function init(){
-    buildFlows(OUT); buildFlows(IN); buildFlows(VIS); buildFlows(WMSW);
+    buildFlows(OUT); buildFlows(IN); buildFlows(VIS); buildFlows(WMSW); buildFlows(CALW); buildFlows(SUPW);
     resize(); cam.r = cam.wantR * 1.35;
     addEventListener('resize', resize);
     requestAnimationFrame(t => { last = t; frame(t); });
